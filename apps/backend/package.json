@@ -1,0 +1,6 @@
+{
+  "name": "@juntos/backend",
+  "version": "0.0.1",
+  "private": true,
+  "description": "API NestJS do sistema Juntos pelo Impacto (placeholder — scaffold pendente)"
+}
