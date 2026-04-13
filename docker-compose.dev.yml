@@ -1,0 +1,47 @@
+# docker-compose.dev.yml — OVERLAY de DESENVOLVIMENTO
+#
+# Sobrepõe o docker-compose.yml para rodar frontend e backend em modo dev
+# (Vite dev server + Nest watch) com bind mount do código-fonte e HMR.
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile full up
+#
+# Ou, via script npm da raiz:
+#   npm run docker:dev
+#
+# Notas técnicas importantes:
+#   • Bind mount de ./apps/<app> preserva o código do host dentro do container.
+#   • Volumes anônimos em /repo/node_modules e /repo/apps/<app>/node_modules
+#     impedem que o bind mount apague as dependências instaladas na build.
+#   • Vite precisa ser iniciado com --host 0.0.0.0 (já está no Dockerfile.dev).
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile.dev
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-juntos}:${POSTGRES_PASSWORD:-juntos}@postgres:5432/${POSTGRES_DB:-juntos_dev}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+    volumes:
+      - ./apps/backend:/repo/apps/backend
+      - /repo/apps/backend/node_modules
+      - /repo/node_modules
+    command: ["npm", "run", "start:dev", "--workspace", "@juntos/backend"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile.dev
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    volumes:
+      - ./apps/frontend:/repo/apps/frontend
+      - /repo/apps/frontend/node_modules
+      - /repo/node_modules
+    # Em dev, o Vite escuta em 5173 dentro do container, não em 80.
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    command: ["npm", "run", "dev", "--workspace", "@juntos/frontend", "--", "--host", "0.0.0.0"]

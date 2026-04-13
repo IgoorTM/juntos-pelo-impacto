@@ -1,0 +1,79 @@
+# docker-compose.yml — configuração BASE / PRODUÇÃO
+#
+# Uso:
+#   • Apenas Postgres (dev local):
+#       docker compose up -d postgres
+#
+#   • Stack completa em modo produção:
+#       docker compose --profile full up -d
+#
+#   • Stack completa em modo desenvolvimento (com HMR):
+#       docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile full up
+#
+# Variáveis lidas do arquivo .env na raiz (veja .env.example).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: juntos_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-juntos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-juntos}
+      POSTGRES_DB: ${POSTGRES_DB:-juntos_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-juntos} -d ${POSTGRES_DB:-juntos_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - juntos_net
+
+  backend:
+    # Permanece no profile "full" até o scaffold NestJS existir.
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: juntos_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-juntos}:${POSTGRES_PASSWORD:-juntos}@postgres:5432/${POSTGRES_DB:-juntos_dev}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    networks:
+      - juntos_net
+
+  frontend:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: juntos_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # Container expõe 80 (nginx). Publicamos na FRONTEND_PORT do host.
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    networks:
+      - juntos_net
+
+volumes:
+  postgres_data:
+    name: juntos_postgres_data
+
+networks:
+  juntos_net:
+    name: juntos_net
+    driver: bridge

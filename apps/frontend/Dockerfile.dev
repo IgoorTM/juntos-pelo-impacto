@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7
+#
+# Dockerfile de DESENVOLVIMENTO do frontend (@juntos/frontend).
+# Roda o Vite dev server com HMR. Use junto com docker-compose.dev.yml,
+# que faz bind mount de apps/frontend para o container.
+#
+# Build context: raiz do monorepo.
+
+FROM node:24-alpine
+WORKDIR /repo
+
+# Instala dependências uma vez na build (camada cacheada).
+# O bind mount em runtime preserva o node_modules do container graças
+# ao volume anônimo declarado no docker-compose.dev.yml.
+COPY package.json package-lock.json ./
+COPY apps/frontend/package.json apps/frontend/package.json
+COPY apps/backend/package.json apps/backend/package.json
+
+RUN npm ci --workspace @juntos/frontend --include-workspace-root
+
+# Baseline do código — será sobrescrito pelo bind mount em runtime.
+COPY apps/frontend apps/frontend
+
+EXPOSE 5173
+
+# --host 0.0.0.0 é essencial: sem isso o Vite só escuta em 127.0.0.1
+# dentro do container e fica inacessível a partir do host.
+CMD ["npm", "run", "dev", "--workspace", "@juntos/frontend", "--", "--host", "0.0.0.0"]

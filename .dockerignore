@@ -1,0 +1,42 @@
+# Dependências — reinstaladas dentro do container
+**/node_modules
+
+# Artefatos de build
+**/dist
+**/build
+**/.next
+**/.turbo
+**/.cache
+
+# Git e metadados
+.git
+.gitignore
+.gitattributes
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Testes e cobertura
+coverage
+*.lcov
+
+# Logs
+*.log
+
+# Documentação (não vai para a imagem)
+docs
+*.md
+!README.md
+
+# Docker (não precisa entrar no contexto de si mesmo)
+Dockerfile
+docker-compose*.yml
+.dockerignore

@@ -163,87 +163,71 @@ Este pacote é **opcional no arranque**. Pode ser criado só quando surgir a pri
 
 ## 8. Docker — plano de containerização
 
-Cada app terá seu próprio `Dockerfile`, e a raiz terá um `docker-compose.yml` que sobe os três serviços juntos.
+Cada app tem **dois Dockerfiles** — um de produção e um de desenvolvimento — e a raiz tem **dois arquivos Compose** que se combinam conforme o modo.
 
-### 8.1. Serviços do `docker-compose.yml`
+### 8.1. Arquivos criados
 
-| Serviço | Imagem base | Porta exposta | Depende de |
-|---|---|---|---|
-| `postgres` | `postgres:16-alpine` | 5432 | — |
-| `backend` | build de `apps/backend/Dockerfile` | 3000 | `postgres` |
-| `frontend` | build de `apps/frontend/Dockerfile` | 5173 | `backend` |
+| Arquivo | Papel |
+|---|---|
+| `apps/frontend/Dockerfile` | Produção — build Vite + nginx servindo estáticos |
+| `apps/frontend/Dockerfile.dev` | Desenvolvimento — Vite dev server com HMR |
+| `apps/frontend/nginx.conf` | Config nginx (SPA fallback + cache de assets) |
+| `apps/backend/Dockerfile` | Produção — NestJS compilado + Node runtime (template) |
+| `apps/backend/Dockerfile.dev` | Desenvolvimento — `nest start --watch` (template) |
+| `docker-compose.yml` | Base/produção — postgres + backend + frontend |
+| `docker-compose.dev.yml` | Overlay de dev — sobrescreve backend/frontend com modo watch |
+| `.dockerignore` | Exclui `node_modules`, `.git`, docs etc. do contexto de build |
 
-Layout conceitual (os valores reais virão em um passo posterior):
+### 8.2. Serviços do `docker-compose.yml`
 
-```yaml
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+| Serviço | Imagem | Profile | Porta (host) | Depende de |
+|---|---|---|---|---|
+| `postgres` | `postgres:16-alpine` | default | `POSTGRES_PORT` (5432) | — |
+| `backend` | build de `apps/backend/Dockerfile[.dev]` | `full` | `BACKEND_PORT` (3000) | `postgres` (healthy) |
+| `frontend` | build de `apps/frontend/Dockerfile[.dev]` | `full` | `FRONTEND_PORT` (5173) | `backend` |
 
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      - postgres
-    ports:
-      - "3000:3000"
+**Uso do profile `full`:** `postgres` sempre sobe. `backend` e `frontend` só sobem com `--profile full`. Enquanto o scaffold NestJS não existir, o `backend` não deve ser ativado — o profile protege contra erros em `docker compose up` do dia-a-dia.
 
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-    environment:
-      VITE_API_URL: http://localhost:3000
-    depends_on:
-      - backend
-    ports:
-      - "5173:5173"
+**Healthcheck do Postgres:** `pg_isready` em loop, até o banco aceitar conexões. O `backend` só inicia quando o healthcheck passar (`condition: service_healthy`).
 
-volumes:
-  postgres_data:
-```
+**Network dedicada:** `juntos_net` (bridge). Os serviços se resolvem por nome (`postgres`, `backend`) sem precisar de `host.docker.internal`.
 
-**Observação importante sobre monorepo + Docker:** como o lockfile e o `node_modules` vivem na raiz do workspace, o `context` do build de cada Dockerfile deve ser a **raiz do repositório** (não a pasta do app). Assim o build tem acesso ao `package.json` da raiz e ao `package-lock.json` único, o que permite `npm ci` reproduzível dentro do container.
+### 8.3. Fluxos de execução
 
-### 8.2. Padrão dos Dockerfiles (multi-stage)
+| Objetivo | Comando | Compose aplicado |
+|---|---|---|
+| Subir só o Postgres (dev local recomendado) | `npm run docker:db` | apenas base, sem profile |
+| Stack completa em modo dev (HMR) | `npm run docker:dev` | base + `docker-compose.dev.yml`, profile `full` |
+| Stack completa em modo produção | `npm run docker:prod` | base, profile `full` |
+| Derrubar tudo | `npm run docker:down` | — |
+| Derrubar tudo e apagar volumes | `npm run docker:down:volumes` | remove `juntos_postgres_data` |
 
-Ambos os Dockerfiles seguirão o mesmo padrão de **multi-stage build**:
+**Recomendação de dev diário:** `docker:db` + `npm run dev:frontend` / `dev:backend` localmente. O ciclo mais rápido é com os apps rodando fora do container, apontando para o Postgres do compose via `localhost:5432`. O `docker:dev` é útil quando você precisa validar o comportamento completo dentro dos containers.
 
-1. **Stage `deps`** — copia `package.json` da raiz + `package.json` do workspace em questão + `package-lock.json` e roda `npm ci`. Essa camada é cacheada e só invalida quando dependências mudam.
-2. **Stage `build`** — copia o código-fonte e roda `npm run build --workspace @juntos/<nome>`.
-3. **Stage `runtime`** — imagem mínima (`node:20-alpine` ou `nginx:alpine` para o frontend servindo estáticos) contendo apenas os artefatos necessários para rodar.
+### 8.4. Padrão dos Dockerfiles
 
-Esse padrão reduz o tamanho final da imagem e acelera rebuilds durante desenvolvimento.
+**Produção — multi-stage:**
+1. **Stage `build`** — `node:24-alpine`. Copia manifestos de todos os workspaces (raiz + `apps/frontend/package.json` + `apps/backend/package.json`), roda `npm ci --workspace @juntos/<nome> --include-workspace-root`, copia o código, roda `npm run build`.
+2. **Stage `runtime`** — imagem mínima: `nginx:alpine` para o frontend (servindo `dist/`), `node:24-alpine` para o backend (rodando `node dist/main.js`).
 
-**Dev vs produção:** para o MVP, a abordagem mais simples é:
-- **Desenvolvimento:** rodar `npm run dev:frontend` e `npm run dev:backend` localmente (fora do container) e deixar apenas o **Postgres no Docker**. Isso dá o melhor HMR e o ciclo mais rápido.
-- **Validação / demonstração:** rodar o stack completo via `docker-compose up` para testar como tudo se integra.
+**Desenvolvimento — single-stage:**
+- `node:24-alpine`, mesma instalação de deps, copia o código como baseline e usa `CMD` com o script de watch. Em runtime, o `docker-compose.dev.yml` faz **bind mount** de `./apps/<app>` sobre o baseline e declara **volumes anônimos** em `/repo/node_modules` e `/repo/apps/<app>/node_modules` — isso impede que o bind mount apague as dependências instaladas na build. É o truque padrão para workspaces + Docker dev.
 
-Um `docker-compose.override.yml` com montagem de volume e modo watch pode ser adicionado depois, se a equipe preferir desenvolver totalmente dentro do container.
+**Ponto crítico sobre context:** o build context de todos os Dockerfiles é a **raiz do repositório**, não a pasta do app. Isso é obrigatório porque o lockfile e o `node_modules` vivem na raiz do workspace. O `.dockerignore` na raiz evita que `node_modules`, `.git`, `docs/` e outros itens pesados entrem no contexto de build.
 
-### 8.3. Variáveis de ambiente
+**Vite dentro do container:** o dev server precisa ser iniciado com `--host 0.0.0.0`. Sem isso, o Vite escuta apenas em `127.0.0.1` *dentro* do container e fica inacessível a partir do host. Já está embutido no `CMD` do `Dockerfile.dev` e no `command` do overlay de dev.
+
+### 8.5. Variáveis de ambiente
 
 Existem dois níveis de `.env`:
 
 | Arquivo | Quem lê | Conteúdo típico |
 |---|---|---|
-| `.env` na raiz | `docker-compose.yml` | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET`, portas |
-| `apps/backend/.env` | NestJS em dev local | `DATABASE_URL` apontando para `localhost:5432`, `JWT_SECRET` |
-| `apps/frontend/.env` | Vite em dev local | `VITE_API_URL=http://localhost:3000` |
+| `.env` na raiz | `docker-compose.yml` e `docker-compose.dev.yml` | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `BACKEND_PORT`, `FRONTEND_PORT`, `JWT_SECRET`, `VITE_API_URL` |
+| `apps/backend/.env` | NestJS em dev local (fora do container) | `DATABASE_URL=postgresql://...@localhost:5432/...`, `JWT_SECRET` |
+| `apps/frontend/.env` | Vite em dev local (fora do container) | `VITE_API_URL=http://localhost:3000` |
 
-Cada um tem seu `.env.example` versionado. Os `.env` reais ficam no `.gitignore`.
+O `.env.example` da raiz está versionado. Os `.env` reais ficam no `.gitignore`. Cada valor no compose tem **default via sintaxe `${VAR:-fallback}`** para funcionar mesmo sem `.env` local (útil para um `up` rápido de avaliação).
 
 ## 9. Modelo de dados (esboço inicial)
 
