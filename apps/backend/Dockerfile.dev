@@ -1,0 +1,18 @@
+# syntax=docker/dockerfile:1.7
+
+FROM node:24-alpine
+WORKDIR /repo
+
+COPY package.json package-lock.json ./
+COPY apps/frontend/package.json apps/frontend/package.json
+COPY apps/backend/package.json apps/backend/package.json
+
+COPY apps/backend/prisma apps/backend/prisma
+
+RUN npm ci --workspace @juntos/backend --include-workspace-root
+
+WORKDIR /repo/apps/backend
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]
