@@ -1,16 +1,4 @@
 # syntax=docker/dockerfile:1.7
-#
-# Dockerfile de DESENVOLVIMENTO do backend (@juntos/backend) — NestJS.
-# Roda `nest start --watch` com hot reload. Use junto com
-# docker-compose.dev.yml, que faz bind mount de apps/backend.
-#
-# ATENÇÃO — TEMPLATE:
-# Este Dockerfile pressupõe que o scaffold NestJS já exista em
-# apps/backend (script "start:dev" disponível no package.json).
-# Até lá, o serviço `backend` está no profile "full" do compose
-# e não sobe por padrão.
-#
-# Build context: raiz do monorepo.
 
 FROM node:24-alpine
 WORKDIR /repo
@@ -19,10 +7,12 @@ COPY package.json package-lock.json ./
 COPY apps/frontend/package.json apps/frontend/package.json
 COPY apps/backend/package.json apps/backend/package.json
 
+COPY apps/backend/prisma apps/backend/prisma
+
 RUN npm ci --workspace @juntos/backend --include-workspace-root
 
-COPY apps/backend apps/backend
+WORKDIR /repo/apps/backend
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:dev", "--workspace", "@juntos/backend"]
+CMD ["npm", "run", "start:dev"]

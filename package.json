@@ -16,13 +16,13 @@
     "clean": "npm exec --workspaces -- rm -rf dist build .next",
     "docker:db": "docker compose up -d postgres",
     "docker:db:down": "docker compose stop postgres",
-    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile full up",
-    "docker:dev:build": "docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile full up --build",
-    "docker:prod": "docker compose --profile full up -d",
-    "docker:prod:build": "docker compose --profile full up -d --build",
-    "docker:down": "docker compose --profile full down",
-    "docker:down:volumes": "docker compose --profile full down -v",
-    "docker:logs": "docker compose --profile full logs -f"
+    "docker:dev": "docker compose up",
+    "docker:dev:build": "docker compose up --build",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:prod:build": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:down": "docker compose down",
+    "docker:down:volumes": "docker compose down -v",
+    "docker:logs": "docker compose logs -f"
   },
   "engines": {
     "node": ">=24.0.0"

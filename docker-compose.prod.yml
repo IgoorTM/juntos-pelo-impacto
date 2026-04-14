@@ -6,13 +6,13 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-juntos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-juntos}
-      POSTGRES_DB: ${POSTGRES_DB:-juntos_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-juntos}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-juntos} -d ${POSTGRES_DB:-juntos_dev}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-juntos} -d ${POSTGRES_DB:-juntos}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -20,38 +20,30 @@ services:
   backend:
     build:
       context: .
-      dockerfile: apps/backend/Dockerfile.dev
+      dockerfile: apps/backend/Dockerfile
     container_name: juntos_backend
+    restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgresql://${POSTGRES_USER:-juntos}:${POSTGRES_PASSWORD:-juntos}@postgres:5432/${POSTGRES_DB:-juntos_dev}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-juntos}:${POSTGRES_PASSWORD:-juntos}@postgres:5432/${POSTGRES_DB:-juntos}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required in production}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "${BACKEND_PORT:-3000}:3000"
-    volumes:
-      - ./apps/backend:/repo/apps/backend
-      - /repo/apps/backend/node_modules
-      - /repo/node_modules
 
   frontend:
     build:
       context: .
-      dockerfile: apps/frontend/Dockerfile.dev
+      dockerfile: apps/frontend/Dockerfile
     container_name: juntos_frontend
-    environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
-    volumes:
-      - ./apps/frontend:/repo/apps/frontend
-      - /repo/apps/frontend/node_modules
-      - /repo/node_modules
+      - "${FRONTEND_PORT:-8080}:80"
 
 volumes:
   postgres_data:

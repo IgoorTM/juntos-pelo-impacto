@@ -15,12 +15,13 @@ Monorepo leve com frontend (Vite + React) e backend (NestJS + Prisma + PostgreSQ
 ```
 juntos-pelo-impacto/
 ├── apps/
-│   ├── frontend/       # Vite + React + Tailwind
-│   └── backend/        # NestJS + Prisma + JWT
-├── packages/           # Pacotes internos compartilhados (opcional)
-├── docker/             # Configs auxiliares
-├── docs/               # Documentações
-└── docker-compose.yml  # Orquestra frontend + backend + postgres
+│   ├── frontend/            # Vite + React + Tailwind
+│   └── backend/             # NestJS + Prisma + JWT
+├── packages/                # Pacotes internos compartilhados (opcional)
+├── docker/                  # Configs auxiliares
+├── docs/                    # Documentações
+├── docker-compose.yml       # Stack dev completa (default)
+└── docker-compose.prod.yml  # Stack prod (opt-in via -f)
 ```
 
 ## Pré-requisitos
@@ -66,10 +67,10 @@ cp .env.example .env
 # Só Postgres (recomendado para dev local)
 npm run docker:db
 
-# Stack completa em modo dev (HMR dentro do container, via docker-compose.dev.yml)
+# Stack completa em modo dev (HMR dentro do container)
 npm run docker:dev
 
-# Stack completa em modo produção (Dockerfiles de prod)
+# Stack completa em modo produção (docker-compose.prod.yml)
 npm run docker:prod
 
 # Derrubar tudo
@@ -84,8 +85,7 @@ npm run docker:logs
 
 Notas:
 
-- `postgres` sobe por padrão. `backend` e `frontend` estão no profile `full` do compose e só sobem com `--profile full` (já embutido nos scripts `docker:dev` e `docker:prod`).
-- O serviço `backend` **só funcionará após o scaffold NestJS** ser criado. Até lá, use apenas `docker:db` no dia-a-dia.
+- `docker-compose.yml` é o arquivo default (stack dev completa). `docker-compose.prod.yml` é opt-in explícito via `-f`.
 - Em dev com Vite dentro do container, o dev server é iniciado com `--host 0.0.0.0` (necessário para ser acessível a partir do host).
 
 Detalhes completos de arquitetura Docker em [docs/architecture.md](docs/architecture.md) §8.
@@ -102,7 +102,6 @@ Progresso:
 - [x] Placeholder de `@juntos/backend` criado
 - [x] `.env.example` da raiz para o `docker-compose.yml`
 - [x] Dockerfiles de prod e dev para frontend e backend
-- [x] `docker-compose.yml` + `docker-compose.dev.yml` com profile `full`
+- [x] `docker-compose.yml` (dev default) + `docker-compose.prod.yml` (opt-in)
 - [x] `.dockerignore` na raiz
-- [ ] Scaffold do backend (NestJS + Prisma)
-- [ ] Pacote `@juntos/shared-types` (criar quando surgir a primeira necessidade)
+- [x] Scaffold do backend (NestJS + Prisma)
