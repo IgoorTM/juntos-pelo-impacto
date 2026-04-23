@@ -15,7 +15,7 @@ Sistema de gestão do programa **Juntos pelo Impacto** para substituir o control
 npm install
 ```
 
-Se for usar Docker localmente, copie as variáveis antes do primeiro `up`:
+Se quiser sobrescrever valores locais do Docker, copie as variáveis antes do primeiro `up`:
 
 ```bash
 cp .env.example .env
