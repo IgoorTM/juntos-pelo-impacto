@@ -24,7 +24,7 @@ Base de segurança. Todos os outros módulos dependem de JWT e guards funcionand
 - Implementar `JwtAuthGuard` (guard padrão para rotas autenticadas)
 - Implementar `RolesGuard` + decorator `@Roles()`
 - Implementar decorator `@Public()` para rotas sem JWT
-- Configurar `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`)
+- Configurar `ValidationPipe` global (`whitelist`, `forbidNonWhitelisted`, `transform`) com retorno de validação alinhado ao contrato (`422`)
 - Endpoint `POST /auth/sign-in` — valida credenciais, retorna JWT
 - Endpoint `POST /auth/sign-up` — cria conta `STUDENT`, verifica `AppConfig.signUpEnabled`
 - Endpoint `GET /auth/me` — retorna usuário autenticado
