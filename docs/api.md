@@ -7,6 +7,8 @@
 - Base URL: `http://localhost:3000` (dev local)
 - Autenticação: `Authorization: Bearer <token>` em todas as rotas não públicas
 - Erros seguem o padrão NestJS: `{ statusCode, message, error }`
+- Em conflitos de regra de negócio, a resposta pode incluir `details` com dados extras (ex.: `projectId`, `projectName` em `PATCH /oscs/:id`).
+- `signUpEnabled` (auth toggle) e `signUp.enabled` (dashboard) representam o mesmo estado (`AppConfig.signUpEnabled`), com shape adaptado ao endpoint.
 - Datas em ISO 8601: `"2025-06-15T10:00:00.000Z"`
 - Semestre em formato `"YYYY-N"`: `"2025-1"`, `"2025-2"`
 
@@ -141,7 +143,12 @@ Response `200`: OSC atualizada (mesmo shape de `GET /oscs/:id`).
 
 Regra de negócio: ao tentar `IN_PROGRESS -> AVAILABLE`, se existir projeto ativo vinculado à OSC, retorna `409` com:
 ```json
-{ "projectId": "string", "projectName": "string" }
+{
+  "statusCode": 409,
+  "message": "OSC possui projeto ativo vinculado",
+  "error": "Conflict",
+  "details": { "projectId": "string", "projectName": "string" }
+}
 ```
 `Project.oscId` nunca é zerado automaticamente.
 
