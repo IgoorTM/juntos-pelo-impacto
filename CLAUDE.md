@@ -4,8 +4,15 @@ Este arquivo é a fonte operacional de contexto e regras para IA neste repositó
 
 ## Documentos de referência
 
-- [docs/spech-delivery.md](docs/spech-delivery.md) — escopo funcional, requisitos, telas. **Fonte da verdade do que o MVP faz.**
-- [docs/architecture.md](docs/architecture.md) — arquitetura, estrutura de pastas, stack, convenções de workspace, plano de Docker. **Fonte da verdade de como o código é organizado.**
+| Documento | Responsabilidade |
+|---|---|
+| [docs/spech-delivery.md](docs/spech-delivery.md) | O QUÊ — requisitos funcionais, não funcionais, telas, escopo do MVP |
+| [docs/architecture.md](docs/architecture.md) | COMO — stack, estrutura de pastas, workspaces, convenções |
+| [docs/data-model.md](docs/data-model.md) | DADOS — entidades, relações, enums, regras derivadas do modelo |
+| [docs/docker.md](docs/docker.md) | INFRA — Dockerfiles, Compose, variáveis de ambiente, fluxos |
+| [docs/rbac.md](docs/rbac.md) | SEGURANÇA — matriz de permissões por perfil e endpoint |
+| [docs/api.md](docs/api.md) | CONTRATO — endpoints, request/response por módulo |
+| [docs/tasks.md](docs/tasks.md) | EXECUÇÃO — quebra técnica do MVP em tarefas ordenadas por fase |
 
 Se uma instrução conflitar com esses documentos, pare e pergunte antes de prosseguir.
 
@@ -14,19 +21,23 @@ Se uma instrução conflitar com esses documentos, pare e pergunte antes de pros
 Sistema de gestão para o programa **Juntos pelo Impacto**, cujo objetivo é substituir a gestão manual via planilhas do relacionamento entre alunos universitários, equipes e Organizações da Sociedade Civil (OSCs) parceiras. O sistema atual é descentralizado, gera duplicidade de seleção de OSCs e não dá visibilidade do progresso dos projetos.
 
 ### Perfis de usuário
-- **Professor/Coordenador** — cadastra OSCs, altera status, acompanha métricas no dashboard.
-- **Aluno** — visualiza OSCs disponíveis e seleciona uma para o projeto da equipe.
+- **Coordenador** — cadastra OSCs, altera status, gerencia projetos, acompanha dashboard. Criado via `prisma/seed.ts`.
+- **Aluno** — cria/entra em projetos e continua projetos existentes. Cadastra-se via `/sign-up` quando habilitado.
 
 ### Entidades de domínio
 - **User** — coordenador ou aluno, autenticado via JWT.
-- **Team** — equipe de alunos que executa um projeto.
-- **OSC** (Organização da Sociedade Civil) — organização parceira. Tem status `DISPONIVEL`, `EM_ANDAMENTO` ou `BLOQUEADA`.
-- **Project** — vínculo semestral entre uma Team e uma OSC. Tem marcação de finalizado/não finalizado.
+- **Project** — vínculo persistente com uma OSC. Persiste entre semestres; equipes diferentes podem executar o mesmo projeto em semestres distintos. Tem `status` (`ProjectStatus`).
+- **Team** — equipe de alunos em um semestre específico. Tem `code` (6 chars, charset `A-Z`+`2-9`) e `createdBy` (líder da equipe).
+- **TeamMember** — relação muitos-para-muitos entre User e Team. Um aluno pode estar em múltiplas equipes simultaneamente.
+- **Osc** — organização parceira. Status: `AVAILABLE`, `IN_PROGRESS` ou `BLOCKED`.
+- **AppConfig** — singleton de configuração global. Controla `signUpEnabled`.
 
 ### Regras de negócio críticas (da spec)
-- **RF007 — Remoção automática:** quando uma equipe seleciona uma OSC, ela sai automaticamente da lista de disponíveis.
-- **RF008 — Bloqueio automático:** OSCs que tiveram projeto não finalizado no semestre anterior ficam automaticamente bloqueadas para novas seleções.
-- **RBAC:** separação rígida do que cada perfil pode fazer. Coordenador não seleciona OSC; aluno não altera status de OSC.
+- **RF007 — Remoção automática:** ao criar um projeto com OSC `AVAILABLE`, a OSC muda para `IN_PROGRESS` e sai da lista de disponíveis. O criador da equipe é o líder (`Team.createdBy`).
+- **RF008 — Disponibilidade manual:** o Coordenador define o status das OSCs manualmente via painel. A única transição bloqueada automaticamente é `IN_PROGRESS -> AVAILABLE` quando há projeto ativo vinculado (retorna `409`). OSCs `IN_PROGRESS` ou `BLOCKED` não aparecem para alunos.
+- **RF010 — Cadastro controlado:** `/sign-up` só funciona quando `AppConfig.signUpEnabled = true`. O Coordenador controla esse flag.
+- **RF014 — Status do projeto:** ao encerrar semestre, Coordenador define `COMPLETED`, `ABANDONED`, `ONGOING` ou `INCOMPLETE`. `COMPLETED`/`ABANDONED` liberam a OSC para `AVAILABLE` automaticamente.
+- **RBAC:** separação rígida por perfil — detalhes em [docs/rbac.md](docs/rbac.md).
 
 ## Arquitetura em síntese
 
@@ -41,7 +52,7 @@ Monorepo leve com **npm workspaces** (sem Nx/Turborepo). Frontend e backend vive
 | Auth | JWT |
 | Workspace | npm workspaces |
 | Execução local | Docker + Docker Compose |
-| Node | 20 LTS (via mise) |
+| Node | 24 LTS (via mise) |
 
 Proibido sem discussão prévia: pnpm, yarn, Nx, Turborepo, Lerna, ORM que não seja Prisma, framework backend que não seja NestJS.
 
@@ -77,8 +88,10 @@ juntos-pelo-impacto/
 | Estrutura de pastas (raiz, apps, packages) | `docs/architecture.md` §3 e §§5–7 |
 | Convenções de workspaces, naming, scripts | `docs/architecture.md` §4 |
 | Padrões de organização interna (feature-based, módulo NestJS…) | `docs/architecture.md` §5 ou §6 |
-| Plano de Docker, serviços, variáveis de ambiente | `docs/architecture.md` §8 |
-| Modelo de dados (entidades, enums, relações) | `docs/architecture.md` §9 |
+| Plano de Docker, serviços, variáveis de ambiente | `docs/docker.md` |
+| Modelo de dados (entidades, enums, relações, regras) | `docs/data-model.md` |
+| Permissões e controle de acesso (RBAC) | `docs/rbac.md` |
+| Contratos de API (endpoints, request, response) | `docs/api.md` |
 | Convenções de commit, branch, lint, idioma | `docs/architecture.md` §10 |
 | Mudança de escopo do MVP (incluir/excluir feature) | `docs/spech-delivery.md` + confirmar com usuário |
 | Novas regras operacionais para a IA | Este arquivo (`CLAUDE.md`) |
@@ -97,10 +110,12 @@ Padronização que não está nos documentos **não existe**. Se você aplicou u
 
 ### Dentro do escopo do MVP
 - Autenticação JWT com dois perfis (Coordenador, Aluno) e RBAC.
-- CRUD de OSCs com gestão de status.
-- Fluxo de seleção de OSC por equipe + remoção automática.
-- Bloqueio automático de OSCs com projetos pendentes.
-- Dashboard simplificado (contagem de OSCs e projetos ativos).
+- Cadastro público de alunos via `/sign-up`, controlado por flag no banco.
+- CRUD de OSCs com gestão manual de status pelo Coordenador.
+- Criação de projeto + equipe; entrada em equipe por código; continuação de projeto em novo semestre.
+- Seleção de OSC pelo líder da equipe + remoção automática da lista (RF007).
+- Definição de status do projeto ao encerrar semestre + liberação automática da OSC quando aplicável (RF014).
+- Dashboard único do Coordenador com métricas, alerta de projetos pendentes de fechamento e controle do toggle `signUpEnabled`.
 
 ### Fora do escopo (não implementar, não propor)
 - Ferramentas de monorepo pesadas (Nx, Turborepo, Lerna).
@@ -120,4 +135,4 @@ Prazo do MVP: **2 meses**. Prefira simplicidade a abstração especulativa. Não
 
 ## Estado atual
 
-Fase: **estruturação inicial**. Arquitetura definida em `docs/architecture.md`. Pendente: `package.json` da raiz com workspaces, scaffold do backend NestJS, Dockerfiles, `docker-compose.yml`. O frontend já tem Vite + React + Tailwind em `apps/frontend/`; o backend em `apps/backend/` está vazio.
+Fase: **planejamento concluído — pronto para implementação**. Toda a documentação está definida. Scaffold de backend (NestJS + Prisma) e frontend (Vite + React + Tailwind) existentes. Docker Compose configurado. Próximo passo: **Fase 0** de `docs/tasks.md` — escrever o schema Prisma e o seed.

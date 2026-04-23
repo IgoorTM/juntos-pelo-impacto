@@ -6,9 +6,16 @@ Monorepo leve com frontend (Vite + React) e backend (NestJS + Prisma + PostgreSQ
 
 ## Documentação
 
-- [Especificação técnica do MVP](docs/spech-delivery.md)
-- [Arquitetura e estrutura de pastas](docs/architecture.md)
-- [Contexto para assistentes de IA](CLAUDE.md)
+| Documento | Conteúdo |
+|---|---|
+| [spech-delivery.md](docs/spech-delivery.md) | Requisitos funcionais, telas e escopo do MVP |
+| [architecture.md](docs/architecture.md) | Stack, estrutura de pastas e convenções |
+| [data-model.md](docs/data-model.md) | Entidades, relações e regras de negócio |
+| [docker.md](docs/docker.md) | Dockerfiles, Compose e variáveis de ambiente |
+| [rbac.md](docs/rbac.md) | Matriz de permissões por perfil |
+| [api.md](docs/api.md) | Contratos de endpoints |
+| [tasks.md](docs/tasks.md) | Quebra técnica do MVP por fase |
+| [CLAUDE.md](CLAUDE.md) | Contexto e regras para assistentes de IA |
 
 ## Estrutura
 
