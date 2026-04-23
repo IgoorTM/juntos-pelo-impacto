@@ -6,7 +6,7 @@
 
 | Perfil | Enum | Descrição |
 |---|---|---|
-| Coordenador | `COORDINATOR` | Professor/gestor do programa. Criado via seed. |
+| Coordenador | `COORDINATOR` | Coordenador do programa. Criado via seed. |
 | Aluno | `STUDENT` | Participante do programa. Criado via `/sign-up`. |
 
 ## 2. Matriz de permissões
