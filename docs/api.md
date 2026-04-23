@@ -165,7 +165,7 @@ Response `200`:
     "id": "string",
     "name": "string",
     "status": "IN_PROGRESS | COMPLETED | ABANDONED | INCOMPLETE | ONGOING",
-    "osc": { "id": "string", "name": "string" } | null,
+    "osc": { "id": "string", "name": "string" },
     "teams": [
       {
         "id": "string",
