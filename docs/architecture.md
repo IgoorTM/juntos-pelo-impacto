@@ -96,21 +96,23 @@ apps/frontend/
 │   ├── assets/                # Imagens, ícones, fontes
 │   ├── components/            # Componentes reutilizáveis (Button, Input, Card…)
 │   ├── features/              # Código organizado por domínio
-│   │   ├── auth/              # Login, contexto de autenticação
-│   │   ├── oscs/              # Listagem, cadastro, seleção
+│   │   ├── auth/              # Login e cadastro (/sign-in, /sign-up)
+│   │   ├── oscs/              # Listagem, cadastro, gestão de status
+│   │   ├── projects/          # Criar projeto, definir status, listagem
+│   │   ├── teams/             # Entrar em equipe por código, criar equipe de continuação
 │   │   └── dashboard/         # Painel do coordenador
 │   ├── layouts/               # Layouts de página (ex: layout autenticado)
 │   ├── pages/                 # Páginas/rotas
 │   ├── lib/                   # Cliente HTTP, helpers, config
-│   ├── App.jsx
-│   ├── main.jsx
+│   ├── App.tsx
+│   ├── main.tsx
 │   └── index.css
 ├── .env.example               # VITE_API_URL e afins
 ├── Dockerfile                 # Imagem para o compose
 ├── eslint.config.js
 ├── index.html
 ├── package.json
-└── vite.config.js
+└── vite.config.ts
 ```
 
 **Organização por feature, não por tipo.** Dentro de `features/oscs` ficam juntos os componentes, hooks e chamadas de API daquela feature. Reduz navegação entre pastas e é o padrão que melhor escala para o tamanho do MVP.
@@ -124,12 +126,14 @@ apps/backend/
 ├── prisma/
 │   ├── schema.prisma          # Datasource + generator (modelos a adicionar)
 │   ├── migrations/            # [futuro] Histórico de migrações versionadas
-│   └── seed.ts                # [futuro] Dados iniciais para desenvolvimento
+│   └── seed.ts                # Cria coordenadores iniciais (RF011); roda com `npx prisma db seed`
 ├── src/
 │   ├── modules/               # [futuro] Módulos NestJS por domínio
-│   │   ├── auth/              # Login, JWT strategy, guards, RBAC
+│   │   ├── auth/              # Login, cadastro, JWT strategy, guards, RBAC, sign-up toggle
 │   │   ├── users/             # CRUD básico de usuários
-│   │   ├── oscs/              # Cadastro, listagem, status, seleção
+│   │   ├── oscs/              # Cadastro, listagem, status
+│   │   ├── projects/          # Criar projeto (com OSC), continuar projeto, definir status
+│   │   ├── teams/             # Criar equipe (continuação), entrar por código
 │   │   └── dashboard/         # Métricas agregadas
 │   ├── common/                # [futuro] Decorators, filters, interceptors
 │   ├── prisma/                # PrismaModule + PrismaService (Global)
@@ -160,8 +164,8 @@ Propósito: concentrar contratos que precisam ser idênticos nos dois lados — 
 
 Exemplos de conteúdo planejado (apenas ilustrativo):
 
-- `UserRole` — `COORDENADOR` | `ALUNO`
-- `OscStatus` — `DISPONIVEL` | `EM_ANDAMENTO` | `BLOQUEADA`
+- `UserRole` — `COORDINATOR` | `STUDENT`
+- `OscStatus` — `AVAILABLE` | `IN_PROGRESS` | `BLOCKED`
 - Interfaces de request/response do endpoint de login e da listagem de OSCs
 
 Este pacote é **opcional no arranque**. Pode ser criado só quando surgir a primeira duplicação real entre frontend e backend. No momento em que existir, ele:
@@ -170,85 +174,13 @@ Este pacote é **opcional no arranque**. Pode ser criado só quando surgir a pri
 - Expõe os tipos via `src/index.ts`
 - É consumido via `import { OscStatus } from '@juntos/shared-types'`
 
-## 8. Docker — plano de containerização
+## 8. Docker
 
-Cada app tem **dois Dockerfiles** — um de produção e um de desenvolvimento — e a raiz tem **dois arquivos Compose auto-contidos**, um por ambiente. **Não usamos overlays** (`-f base -f override`) nem `profiles` para separar dev e prod: cada arquivo define a stack completa do seu ambiente. Isso evita o merge de listas (`ports`, `volumes`) entre arquivos, que é fonte comum de bugs silenciosos no Compose.
+Detalhes completos de containerização, Dockerfiles, serviços, variáveis de ambiente e fluxos de execução em [docker.md](docker.md).
 
-### 8.1. Arquivos criados
+## 9. Modelo de dados
 
-| Arquivo | Papel |
-|---|---|
-| `apps/frontend/Dockerfile` | Produção — build Vite + nginx servindo estáticos |
-| `apps/frontend/Dockerfile.dev` | Desenvolvimento — Vite dev server com HMR |
-| `apps/frontend/nginx.conf` | Config nginx (SPA fallback + cache de assets) |
-| `apps/backend/Dockerfile` | Produção — multi-stage com `prod-deps` isolado e usuário non-root |
-| `apps/backend/Dockerfile.dev` | Desenvolvimento — `nest start --watch` com Prisma Client pré-gerado |
-| `docker-compose.yml` | **Default — stack dev completa** (postgres + backend watch + frontend Vite) |
-| `docker-compose.prod.yml` | Stack de produção, opt-in explícito via `-f` |
-| `.dockerignore` | Exclui `node_modules`, `.git`, docs etc. do contexto de build |
-
-### 8.2. Serviços
-
-Ambos os arquivos sobem os três serviços (`postgres`, `backend`, `frontend`) na mesma rede default criada pelo Compose. Os serviços se resolvem por nome (`postgres`, `backend`) sem precisar de `host.docker.internal`.
-
-| Serviço | Imagem (dev) | Imagem (prod) | Porta (host) |
-|---|---|---|---|
-| `postgres` | `postgres:16-alpine` | `postgres:16-alpine` | `POSTGRES_PORT` (5432) |
-| `backend` | build `Dockerfile.dev` | build `Dockerfile` | `BACKEND_PORT` (3000) |
-| `frontend` | build `Dockerfile.dev` | build `Dockerfile` | `FRONTEND_PORT` (5173 dev, 8080 prod) |
-
-**Healthcheck do Postgres:** `pg_isready` em loop. O `backend` só inicia após o healthcheck passar (`condition: service_healthy`).
-
-### 8.3. Fluxos de execução
-
-| Objetivo | Comando |
-|---|---|
-| Subir só o Postgres (dev local com apps fora do container) | `npm run docker:db` |
-| Stack completa em modo dev (HMR) | `npm run docker:dev` |
-| Stack completa em modo dev forçando rebuild | `npm run docker:dev:build` |
-| Stack completa em modo produção | `npm run docker:prod` |
-| Derrubar stack default (dev) | `npm run docker:down` |
-| Derrubar e apagar volumes | `npm run docker:down:volumes` |
-
-**Recomendação de dev diário:** `docker:db` + `npm run dev:frontend` / `dev:backend` rodando localmente. O ciclo mais rápido é com os apps fora do container, apontando para o Postgres do compose via `localhost:5432`. O `docker:dev` é útil quando você precisa validar o comportamento completo dentro dos containers.
-
-### 8.4. Padrão dos Dockerfiles
-
-**Produção — multi-stage:**
-1. **`deps`** — instala todas as dependências (dev + prod) necessárias para o build. Copia o schema Prisma antes do `npm ci` porque o `postinstall` do backend roda `prisma generate`.
-2. **`build`** — compila TypeScript e gera `dist/`.
-3. **`prod-deps`** — reinstala com `--omit=dev` para reduzir o tamanho da imagem final.
-4. **`runtime`** — imagem mínima (`node:24-alpine` ou `nginx:alpine`). Backend roda como usuário non-root `nestjs` (princípio do menor privilégio).
-
-**Desenvolvimento — single-stage:**
-- `node:24-alpine`, copia apenas manifestos de workspace e (no backend) o schema Prisma, roda `npm ci`. **Não copia código-fonte** — o compose faz bind mount de `./apps/<app>` em runtime, e volumes nomeados (`backend_node_modules`, `frontend_node_modules`, `root_node_modules`) preservam os `node_modules` instalados na build, impedindo que o bind mount apague as dependências.
-
-**Ponto crítico sobre context:** o build context de todos os Dockerfiles é a **raiz do repositório**, não a pasta do app. Isso é obrigatório porque o lockfile e o `node_modules` vivem na raiz do workspace npm. O `.dockerignore` na raiz evita que `node_modules`, `.git`, `docs/` e outros itens pesados entrem no contexto de build.
-
-**Vite dentro do container:** o dev server precisa ser iniciado com `--host 0.0.0.0`. Sem isso, o Vite escuta apenas em `127.0.0.1` *dentro* do container e fica inacessível a partir do host. Já está embutido no `CMD` do `Dockerfile.dev`.
-
-### 8.5. Variáveis de ambiente
-
-Existem dois níveis de `.env`:
-
-| Arquivo | Quem lê | Conteúdo típico |
-|---|---|---|
-| `.env` na raiz | `docker-compose.yml` e `docker-compose.prod.yml` | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `BACKEND_PORT`, `FRONTEND_PORT`, `JWT_SECRET`, `VITE_API_URL` |
-| `apps/backend/.env` | NestJS em dev local (fora do container) | `DATABASE_URL=postgresql://...@localhost:5432/...`, `JWT_SECRET` |
-| `apps/frontend/.env` | Vite em dev local (fora do container) | `VITE_API_URL=http://localhost:3000` |
-
-O `.env.example` da raiz está versionado. Os `.env` reais ficam no `.gitignore`. Cada valor no compose tem **default via sintaxe `${VAR:-fallback}`** para funcionar mesmo sem `.env` local (útil para um `up` rápido de avaliação). A única exceção é `JWT_SECRET` no arquivo de produção, que usa `${VAR:?mensagem}` para falhar explicitamente se não estiver definido.
-
-## 9. Modelo de dados (esboço inicial)
-
-Derivado dos requisitos da spec. Serve apenas para orientar a estrutura de pastas do Prisma — o schema definitivo será escrito na fase de implementação.
-
-- **User** — `id`, `name`, `email`, `passwordHash`, `role` (`COORDENADOR` | `ALUNO`)
-- **Team** — `id`, `name`, membros (relação com User)
-- **Osc** — `id`, `name`, `description`, `contactEmail`, `status` (`DISPONIVEL` | `EM_ANDAMENTO` | `BLOQUEADA`), `selectedByTeamId` (FK nullable)
-- **Project** — `id`, `teamId`, `oscId`, `semestre`, `finalizado` (bool)
-
-A regra de bloqueio automático (RF008) será implementada como lógica no service da OSC ao listar disponíveis (ou como coluna derivada — decidir na implementação).
+Entidades, relações, enums e regras de negócio derivadas do modelo em [data-model.md](data-model.md).
 
 ## 10. Convenções transversais
 
@@ -256,7 +188,7 @@ A regra de bloqueio automático (RF008) será implementada como lógica no servi
 - **Commits:** conventional commits (`feat:`, `fix:`, `docs:`, `chore:`…).
 - **Branches:** `main` protegida; trabalho em `feat/…`, `fix/…`.
 - **Lint/format:** cada workspace configura o seu. Frontend já tem ESLint; backend adicionará ao ser inicializado.
-- **TypeScript:** obrigatório no backend (NestJS). Frontend hoje é JSX puro; migração para TSX é decisão da equipe.
+- **TypeScript:** obrigatório no backend (NestJS) e no frontend (React/TSX).
 
 ## 11. O que **não** está nesta arquitetura (e por quê)
 

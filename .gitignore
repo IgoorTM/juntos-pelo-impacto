@@ -34,3 +34,6 @@ coverage/
 # Turbo / cache
 .turbo/
 .cache/
+
+# Local git worktrees
+.worktrees/
