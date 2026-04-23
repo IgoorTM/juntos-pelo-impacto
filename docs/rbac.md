@@ -20,14 +20,14 @@
 
 ### Auth
 
-| Rota | Método | COORDINATOR | STUDENT |
+| Rota | Método | Coordenador | Aluno |
 |---|---|---|---|
 | `/auth/me` | `GET` | Sim | Sim |
 | `/auth/sign-up/toggle` | `PATCH` | Sim | Não |
 
 ### OSCs
 
-| Rota | Método | COORDINATOR | STUDENT | Observação |
+| Rota | Método | Coordenador | Aluno | Observação |
 |---|---|---|---|---|
 | `/oscs` | `GET` | Todas as OSCs | Apenas `AVAILABLE` | Aluno não vê `IN_PROGRESS` nem `BLOCKED` |
 | `/oscs` | `POST` | Sim | Não | |
@@ -36,23 +36,23 @@
 
 ### Projects
 
-| Rota | Método | COORDINATOR | STUDENT | Observação |
+| Rota | Método | Coordenador | Aluno | Observação |
 |---|---|---|---|---|
-| `/projects` | `GET` | Todos os projetos | Projetos em que é membro (`TeamMember`) **+** projetos continuáveis (`ONGOING`/`INCOMPLETE`) | Regra A ∪ B para STUDENT |
-| `/projects/:id` | `GET` | Sim | Sim, se o projeto estiver em A ∪ B | Fora de A ∪ B retorna `404` para STUDENT |
+| `/projects` | `GET` | Todos os projetos | Projetos em que é membro (`TeamMember`) **+** projetos continuáveis (`ONGOING`/`INCOMPLETE`) | Regra A ∪ B para Aluno |
+| `/projects/:id` | `GET` | Sim | Sim, se o projeto estiver em A ∪ B | Fora de A ∪ B retorna `404` para Aluno |
 | `/projects` | `POST` | Não | Sim | Fluxo A — body `{ name, oscId }` com OSC `AVAILABLE`. Cria Project + Team e move `Osc.status → IN_PROGRESS` em uma transação |
-| `/projects/:id/teams` | `POST` | Não | Sim | Fluxo B — continuação por qualquer STUDENT. Só projetos com `status IN (ONGOING, INCOMPLETE)`. Cria Team, herda OSC e reativa projeto (`status → IN_PROGRESS`) |
+| `/projects/:id/teams` | `POST` | Não | Sim | Fluxo B — continuação por qualquer Aluno. Só projetos com `status IN (ONGOING, INCOMPLETE)`. Cria Team, herda OSC e reativa projeto (`status → IN_PROGRESS`) |
 | `/projects/:id/status` | `PATCH` | Sim | Não | RF014 — define status ao encerrar semestre |
 
 ### Teams
 
-| Rota | Método | COORDINATOR | STUDENT | Observação |
+| Rota | Método | Coordenador | Aluno | Observação |
 |---|---|---|---|---|
 | `/teams/join` | `POST` | Não | Sim | Aluno entra na equipe pelo código de 6 caracteres |
 
 ### Dashboard
 
-| Rota | Método | COORDINATOR | STUDENT |
+| Rota | Método | Coordenador | Aluno |
 |---|---|---|---|
 | `/dashboard` | `GET` | Sim | Não |
 

@@ -58,3 +58,4 @@ npm run docker:logs
 - [`docs/docker.md`](docs/docker.md): serviços, variáveis de ambiente e fluxos Docker.
 - [`docs/tasks.md`](docs/tasks.md): roadmap técnico por fases.
 - [`CLAUDE.md`](CLAUDE.md): contexto operacional para assistentes de IA.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): guia de contribuicao (branches, commits, dependencias).
