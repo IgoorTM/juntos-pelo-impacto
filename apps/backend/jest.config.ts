@@ -1,9 +1,14 @@
 import type { Config } from 'jest';
 
+const testType = process.env.TEST_TYPE || 'unit';
+
 const config: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
-  testRegex: '.*\\.spec\\.ts$',
+  testMatch:
+    testType === 'e2e'
+      ? ['<rootDir>/test/**/*.e2e-spec.ts']
+      : ['<rootDir>/src/**/*.spec.ts'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
