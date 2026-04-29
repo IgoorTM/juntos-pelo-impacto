@@ -6,9 +6,9 @@
 
 | Perfil | Enum | Descrição |
 |---|---|---|
-| Admin | `ADMIN` | Acesso irrestrito a todos os endpoints. Criado via seed. No frontend, compartilha a mesma visão do Coordenador (no MVP). |
-| Coordenador | `COORDINATOR` | Coordenador do programa. Criado via seed. |
-| Aluno | `STUDENT` | Participante do programa. Criado via `/sign-up`. |
+| Admin | `ADMIN` | Acesso irrestrito a todos os endpoints. Criado via seed. No frontend, compartilha a mesma visão do Coordenador (no MVP). Pode criar coordenadores via `POST /auth/sign-up`. |
+| Coordenador | `COORDINATOR` | Coordenador do programa. Criado via `POST /auth/sign-up` com `role: COORDINATOR` (requer autenticação ADMIN). |
+| Aluno | `STUDENT` | Participante do programa. Criado via `POST /auth/sign-up` (público quando habilitado). |
 
 > **Regra geral:** `ADMIN` ignora a matriz abaixo — todo endpoint autenticado é permitido para `ADMIN`. As tabelas a seguir descrevem apenas `COORDINATOR` e `STUDENT`; o `RolesGuard` deve liberar automaticamente qualquer rota quando `req.user.role === ADMIN`.
 
@@ -23,10 +23,12 @@
 
 ### Auth
 
-| Rota | Método | Coordenador | Aluno |
-|---|---|---|---|
-| `/auth/me` | `GET` | Sim | Sim |
-| `/auth/sign-up/toggle` | `PATCH` | Sim | Não |
+| Rota | Método | Público | Coordenador | Aluno | Observação |
+|---|---|---|---|---|---|
+| `/auth/sign-up` (role=STUDENT) | `POST` | Sim* | Sim* | Sim* | Público quando `AppConfig.signUpEnabled = true` |
+| `/auth/sign-up` (role=COORDINATOR) | `POST` | Não | Não | Não | Apenas ADMIN |
+| `/auth/me` | `GET` | Não | Sim | Sim | |
+| `/auth/sign-up/toggle` | `PATCH` | Não | Sim | Não | |
 
 ### OSCs
 
