@@ -37,3 +37,7 @@ coverage/
 
 # Local git worktrees
 .worktrees/
+
+# IA 
+.superpowers/
+.claude/
