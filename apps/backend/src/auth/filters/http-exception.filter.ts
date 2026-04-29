@@ -3,6 +3,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
@@ -18,12 +19,18 @@ interface ExceptionResponse {
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger('HttpExceptionFilter');
+
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const exceptionResponse = exception.getResponse() as ExceptionResponse;
+
+    this.logger.error(
+      `${request.method} ${request.url} - Status: ${status} - Message: ${JSON.stringify(exceptionResponse)}`,
+    );
 
     // Formata resposta de validação (ValidationPipe)
     if (status === 400 && Array.isArray(exceptionResponse?.message)) {
