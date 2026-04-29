@@ -7,11 +7,12 @@ export class LoggerMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const start = Date.now();
-    const { method, originalUrl, body, ip } = req;
+    const method = req.method;
+    const originalUrl = req.originalUrl;
 
     res.on('finish', () => {
       const duration = Date.now() - start;
-      const { statusCode } = res;
+      const statusCode = res.statusCode;
 
       const message = `${method} ${originalUrl} - ${statusCode} - ${duration}ms`;
 
@@ -23,8 +24,10 @@ export class LoggerMiddleware implements NestMiddleware {
         this.logger.log(message);
       }
 
-      if (method === 'POST' || method === 'PATCH') {
-        this.logger.debug(`Body: ${JSON.stringify(body)}`);
+      if ((method === 'POST' || method === 'PATCH') && req.body) {
+        this.logger.debug(
+          `Body: ${JSON.stringify(req.body as Record<string, unknown>)}`,
+        );
       }
     });
 
