@@ -43,17 +43,24 @@ Erros: `401` credenciais inválidas.
 ---
 
 ### POST /auth/sign-up
-Cria uma conta com perfil `STUDENT`.
+Cria uma conta com perfil `STUDENT` ou `COORDINATOR`.
 
-**Público**, mas bloqueado quando `AppConfig.signUpEnabled = false`. Request:
+**Para `STUDENT` (padrão):** Público, mas bloqueado quando `AppConfig.signUpEnabled = false`. Request:
 ```json
 { "name": "string", "email": "string", "password": "string" }
 ```
+
+**Para `COORDINATOR`:** Autenticado, apenas `ADMIN`. Request:
+```json
+{ "name": "string", "email": "string", "password": "string", "role": "COORDINATOR" }
+```
+
 Response `201`:
 ```json
-{ "id": "string", "name": "string", "email": "string", "role": "STUDENT" }
+{ "id": "string", "name": "string", "email": "string", "role": "STUDENT | COORDINATOR" }
 ```
-Erros: `403` cadastro desabilitado; `409` e-mail já cadastrado.
+
+Erros: `400` role inválido; `403` cadastro de STUDENT desabilitado ou permissão negada para criar COORDINATOR; `409` e-mail já cadastrado.
 
 ---
 

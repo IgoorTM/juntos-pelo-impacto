@@ -76,6 +76,7 @@ Configuração global da aplicação. Existe sempre como registro único (single
 
 ```
 UserRole
+  ADMIN
   COORDINATOR
   STUDENT
 

@@ -6,3 +6,99 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  ADMIN
+  COORDINATOR
+  STUDENT
+}
+
+enum OscStatus {
+  AVAILABLE
+  IN_PROGRESS
+  BLOCKED
+}
+
+enum ProjectStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  INCOMPLETE
+  ONGOING
+}
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  createdTeams Team[]       @relation("TeamCreator")
+  teamMembers  TeamMember[]
+}
+
+model Project {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  oscId     String
+  status    ProjectStatus @default(IN_PROGRESS)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  osc   Osc    @relation(fields: [oscId], references: [id], onDelete: Restrict)
+  teams Team[]
+
+  @@index([status])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  projectId String
+  semester  String
+  code      String   @unique
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  creator User         @relation("TeamCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  members TeamMember[]
+
+  @@index([projectId, createdAt(sort: Desc)])
+}
+
+model TeamMember {
+  teamId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([teamId, userId])
+  @@index([userId])
+}
+
+model Osc {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  email       String?
+  phone       String?
+  status      OscStatus @default(AVAILABLE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  projects Project[]
+
+  @@index([status])
+}
+
+model AppConfig {
+  id            Int      @id @default(1)
+  signUpEnabled Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+}
