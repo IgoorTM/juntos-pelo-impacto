@@ -115,3 +115,6 @@ ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_teamId_fkey" FOREIGN KEY ("t
 
 -- AddForeignKey
 ALTER TABLE "TeamMember" ADD CONSTRAINT "TeamMember_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Partial unique index: at most one active Project per OSC
+CREATE UNIQUE INDEX "project_osc_active_unique" ON "Project" ("oscId") WHERE "status" NOT IN ('COMPLETED', 'ABANDONED');
