@@ -6,8 +6,11 @@
 
 | Perfil | Enum | Descrição |
 |---|---|---|
+| Admin | `ADMIN` | Acesso irrestrito a todos os endpoints. Criado via seed. No frontend, compartilha a mesma visão do Coordenador (no MVP). |
 | Coordenador | `COORDINATOR` | Coordenador do programa. Criado via seed. |
 | Aluno | `STUDENT` | Participante do programa. Criado via `/sign-up`. |
+
+> **Regra geral:** `ADMIN` ignora a matriz abaixo — todo endpoint autenticado é permitido para `ADMIN`. As tabelas a seguir descrevem apenas `COORDINATOR` e `STUDENT`; o `RolesGuard` deve liberar automaticamente qualquer rota quando `req.user.role === ADMIN`.
 
 ## 2. Matriz de permissões
 
@@ -68,10 +71,12 @@
 ### Decorators
 
 ```ts
-@Roles(UserRole.COORDINATOR)   // restringe a coordenadores
-@Roles(UserRole.STUDENT)       // restringe a alunos
+@Roles(UserRole.COORDINATOR)   // restringe a coordenadores (ADMIN passa)
+@Roles(UserRole.STUDENT)       // restringe a alunos (ADMIN passa)
 @Public()                      // marca rota como pública (sem JWT)
 ```
+
+`RolesGuard` deve permitir acesso quando `req.user.role === UserRole.ADMIN`, independentemente dos roles declarados em `@Roles`.
 
 ### Fluxo de autenticação
 
@@ -94,5 +99,6 @@ Nenhum endpoint do MVP é gateado por liderança. A OSC é escolhida atomicament
 | Por perfil | `RoleRoute` | Redireciona para home do perfil se role incorreto |
 
 Após o login, o frontend redireciona baseado no `role`:
+- `ADMIN` → `/dashboard` (compartilha a mesma visão de `COORDINATOR` no MVP)
 - `COORDINATOR` → `/dashboard`
 - `STUDENT` → `/projects`
