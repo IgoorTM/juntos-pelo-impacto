@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOscDto } from './dtos/create-osc.dto';
 import { UpdateOscDto } from './dtos/update-osc.dto';
@@ -13,7 +14,17 @@ export class OscsService {
   }
 
   async create(dto: CreateOscDto) {
-    return null;
+    try {
+      return await this.prisma.osc.create({ data: dto });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new ConflictException('OSC name already registered');
+      }
+      throw e;
+    }
   }
 
   async findOne(id: string) {
