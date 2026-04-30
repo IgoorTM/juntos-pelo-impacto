@@ -8,7 +8,8 @@ export class OscsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(role: string) {
-    return [];
+    const where = role === 'STUDENT' ? { status: 'AVAILABLE' as const } : {};
+    return this.prisma.osc.findMany({ where });
   }
 
   async create(dto: CreateOscDto) {

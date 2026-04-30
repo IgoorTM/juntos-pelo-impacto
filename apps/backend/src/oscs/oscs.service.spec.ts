@@ -42,4 +42,33 @@ describe('OscsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  describe('findAll', () => {
+    it('should return all OSCs for COORDINATOR', async () => {
+      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+
+      const result = await service.findAll('COORDINATOR');
+
+      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: {} });
+      expect(result).toEqual([mockOsc]);
+    });
+
+    it('should return all OSCs for ADMIN', async () => {
+      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+
+      const result = await service.findAll('ADMIN');
+
+      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: {} });
+      expect(result).toEqual([mockOsc]);
+    });
+
+    it('should return only AVAILABLE OSCs for STUDENT', async () => {
+      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+
+      const result = await service.findAll('STUDENT');
+
+      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: { status: 'AVAILABLE' } });
+      expect(result).toEqual([mockOsc]);
+    });
+  });
 });
