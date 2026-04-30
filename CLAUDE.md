@@ -62,6 +62,7 @@ Padronizacao que nao esta nos documentos **nao existe**. Se voce aplicou uma con
 ### Commits e qualidade
 
 - Commits atomicos: uma feature ou fix por commit, mensagem descritiva em ingles (conventional commits).
+- **Nunca commitar diretamente na branch `main`.** Todo trabalho (codigo e docs) vai em uma branch separada e entra via PR.
 - Divergencia entre doc e codigo: trate a documentacao como verdade; ajuste o codigo ou pergunte.
 - Confiabilidade sobre velocidade — melhor uma feature bem testada do que um prototipo quebrado.
 

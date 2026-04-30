@@ -116,7 +116,7 @@ Response `200`:
 ### POST /oscs
 Cadastra uma nova OSC.
 
-**COORDINATOR.** Request:
+**COORDINATOR, ADMIN.** Request:
 ```json
 { "name": "string", "description": "string", "email": "string (opcional)", "phone": "string (opcional)" }
 ```
@@ -140,24 +140,17 @@ Erros: `404` não encontrada.
 ---
 
 ### PATCH /oscs/:id
-Atualiza o status de uma OSC.
+Atualiza dados de uma OSC.
 
-**COORDINATOR.** Request:
+**COORDINATOR, ADMIN.** Todos os campos são opcionais. Request:
 ```json
-{ "status": "AVAILABLE | IN_PROGRESS | BLOCKED" }
+{ "name": "string (opcional)", "description": "string (opcional)", "email": "string (opcional)", "phone": "string (opcional)", "status": "AVAILABLE | IN_PROGRESS | BLOCKED (opcional)" }
 ```
 Response `200`: OSC atualizada (mesmo shape de `GET /oscs/:id`).
 
-Regra de negócio: ao tentar `IN_PROGRESS -> AVAILABLE`, se existir projeto ativo vinculado à OSC, retorna `409` com:
-```json
-{
-  "statusCode": 409,
-  "message": "OSC possui projeto ativo vinculado",
-  "error": "Conflict",
-  "details": { "projectId": "string", "projectName": "string" }
-}
-```
-`Project.oscId` nunca é zerado automaticamente.
+Erros: `404` não encontrada; `409` nome já cadastrado.
+
+Sem restrição de transição de status — o coordenador define o status livremente. A restrição de integridade vive em `POST /projects`, que só aceita OSCs com `status = AVAILABLE`.
 
 ---
 
@@ -236,8 +229,8 @@ Erros: `404` OSC não encontrada; `409` OSC não está `AVAILABLE`; `409` nome d
 
 ---
 
-### POST /projects/:id/teams
-Cria uma nova equipe para um projeto existente (continuação em novo semestre — RF012).
+### POST /projects/:id/continue
+Continua um projeto existente em novo semestre — nova equipe assume o projeto (RF012).
 
 **STUDENT.** Em transação: cria `Team` com semestre atual e `createdBy` do aluno criador, insere criador em `TeamMember` e atualiza `Project.status = IN_PROGRESS`.
 

@@ -37,7 +37,7 @@
 | `/oscs` | `GET` | Todas as OSCs | Apenas `AVAILABLE` | Aluno não vê `IN_PROGRESS` nem `BLOCKED` |
 | `/oscs` | `POST` | Sim | Não | |
 | `/oscs/:id` | `GET` | Sim | Sim | |
-| `/oscs/:id` | `PATCH` | Sim (status) | Não | Mover `IN_PROGRESS → AVAILABLE` bloqueia com `409` se houver `Project` ativo vinculado (RF005 em data-model). `Project.oscId` nunca é zerado |
+| `/oscs/:id` | `PATCH` | Sim (qualquer campo) | Não | Atualiza nome, descricao, email, phone e/ou status livremente. Restrição de integridade vive em `POST /projects` (só aceita OSC `AVAILABLE`) |
 
 ### Projects
 
@@ -46,7 +46,7 @@
 | `/projects` | `GET` | Todos os projetos | Projetos em que é membro (`TeamMember`) **+** projetos continuáveis (`ONGOING`/`INCOMPLETE`) | Regra A ∪ B para Aluno |
 | `/projects/:id` | `GET` | Sim | Sim, se o projeto estiver em A ∪ B | Fora de A ∪ B retorna `404` para Aluno |
 | `/projects` | `POST` | Não | Sim | Fluxo A — body `{ name, oscId }` com OSC `AVAILABLE`. Cria Project + Team e move `Osc.status → IN_PROGRESS` em uma transação |
-| `/projects/:id/teams` | `POST` | Não | Sim | Fluxo B — continuação por qualquer Aluno. Só projetos com `status IN (ONGOING, INCOMPLETE)`. Cria Team, herda OSC e reativa projeto (`status → IN_PROGRESS`) |
+| `/projects/:id/continue` | `POST` | Não | Sim | Continuação por qualquer Aluno. Só projetos com `status IN (ONGOING, INCOMPLETE)`. Cria Team e reativa projeto (`status → IN_PROGRESS`) |
 | `/projects/:id/status` | `PATCH` | Sim | Não | RF014 — define status ao encerrar semestre |
 
 ### Teams
