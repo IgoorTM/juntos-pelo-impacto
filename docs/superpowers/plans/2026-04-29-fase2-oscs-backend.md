@@ -184,7 +184,11 @@ describe('OscsService', () => {
 
 Run from the repo root:
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: `PASS` with `OscsService > should be defined`.
@@ -242,7 +246,11 @@ Add inside the `describe('OscsService')` block in `oscs.service.spec.ts`, after 
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: 3 new tests failing (skeleton returns `[]` but assertions check call args).
@@ -261,7 +269,11 @@ Replace the `findAll` skeleton:
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: all 4 tests passing.
@@ -323,7 +335,11 @@ Then add the describe block:
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: 2 new tests failing.
@@ -358,7 +374,11 @@ Replace the `create` skeleton:
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: all 6 tests passing.
@@ -410,7 +430,11 @@ Add the describe block:
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: 2 new tests failing.
@@ -436,7 +460,11 @@ Replace the `findOne` skeleton:
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: all 8 tests passing.
@@ -504,7 +532,11 @@ Add after the `findOne` describe block in `oscs.service.spec.ts`:
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: 3 new tests failing.
@@ -530,7 +562,11 @@ Replace the `update` skeleton:
 - [ ] **Step 4: Run all tests to verify everything passes**
 
 ```bash
+<<<<<<< Updated upstream
+npm run test --workspace @juntos/backend -- --testPathPatterns=oscs.service.spec
+=======
 npm run test --workspace @juntos/backend -- --testPathPattern=oscs.service.spec
+>>>>>>> Stashed changes
 ```
 
 Expected: all 11 tests passing.
