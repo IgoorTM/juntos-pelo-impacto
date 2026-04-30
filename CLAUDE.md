@@ -66,6 +66,10 @@ Padronizacao que nao esta nos documentos **nao existe**. Se voce aplicou uma con
 - Divergencia entre doc e codigo: trate a documentacao como verdade; ajuste o codigo ou pergunte.
 - Confiabilidade sobre velocidade — melhor uma feature bem testada do que um prototipo quebrado.
 
+### Documentacao Swagger (obrigatoria)
+
+Todo controller NestJS deve ter decoradores Swagger em cada endpoint: `@ApiTags`, `@ApiBearerAuth` (rotas autenticadas), `@ApiOperation` e `@ApiResponse` (para cada status code relevante). Todo DTO deve ter `@ApiProperty` ou `@ApiPropertyOptional` em cada campo. O setup do `SwaggerModule` ja existe em `apps/backend/src/main.ts` — nao duplicar.
+
 ## Estado atual
 
 Fase: **planejamento concluido — pronto para implementacao**. Scaffold de backend e frontend existentes. Docker Compose configurado. Proximo passo: **Fase 0** de `docs/tasks.md`.
