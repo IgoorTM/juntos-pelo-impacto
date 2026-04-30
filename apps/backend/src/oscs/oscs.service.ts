@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOscDto } from './dtos/create-osc.dto';
@@ -28,7 +28,9 @@ export class OscsService {
   }
 
   async findOne(id: string) {
-    return null;
+    const osc = await this.prisma.osc.findUnique({ where: { id } });
+    if (!osc) throw new NotFoundException('OSC not found');
+    return osc;
   }
 
   async update(id: string, dto: UpdateOscDto) {

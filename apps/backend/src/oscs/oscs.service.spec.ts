@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OscsService } from './oscs.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 describe('OscsService', () => {
@@ -97,6 +97,23 @@ describe('OscsService', () => {
       await expect(
         service.create({ name: 'OSC Test', description: 'A test OSC' }),
       ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return an OSC by id', async () => {
+      jest.spyOn(prisma.osc, 'findUnique').mockResolvedValue(mockOsc);
+
+      const result = await service.findOne('osc-123');
+
+      expect(prisma.osc.findUnique).toHaveBeenCalledWith({ where: { id: 'osc-123' } });
+      expect(result).toEqual(mockOsc);
+    });
+
+    it('should throw NotFoundException when OSC does not exist', async () => {
+      jest.spyOn(prisma.osc, 'findUnique').mockResolvedValue(null);
+
+      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
 });
