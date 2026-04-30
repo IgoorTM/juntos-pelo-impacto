@@ -47,29 +47,37 @@ describe('OscsService', () => {
 
   describe('findAll', () => {
     it('should return all OSCs for COORDINATOR', async () => {
-      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+      const findManySpy = jest
+        .spyOn(prisma.osc, 'findMany')
+        .mockResolvedValue([mockOsc]);
 
       const result = await service.findAll('COORDINATOR');
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: {} });
+      expect(findManySpy).toHaveBeenCalledWith({ where: {} });
       expect(result).toEqual([mockOsc]);
     });
 
     it('should return all OSCs for ADMIN', async () => {
-      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+      const findManySpy = jest
+        .spyOn(prisma.osc, 'findMany')
+        .mockResolvedValue([mockOsc]);
 
       const result = await service.findAll('ADMIN');
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: {} });
+      expect(findManySpy).toHaveBeenCalledWith({ where: {} });
       expect(result).toEqual([mockOsc]);
     });
 
     it('should return only AVAILABLE OSCs for STUDENT', async () => {
-      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOsc]);
+      const findManySpy = jest
+        .spyOn(prisma.osc, 'findMany')
+        .mockResolvedValue([mockOsc]);
 
       const result = await service.findAll('STUDENT');
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith({ where: { status: 'AVAILABLE' } });
+      expect(findManySpy).toHaveBeenCalledWith({
+        where: { status: 'AVAILABLE' },
+      });
       expect(result).toEqual([mockOsc]);
     });
   });
@@ -102,29 +110,37 @@ describe('OscsService', () => {
 
   describe('findOne', () => {
     it('should return an OSC by id', async () => {
-      jest.spyOn(prisma.osc, 'findUnique').mockResolvedValue(mockOsc);
+      const findUniqueSpy = jest
+        .spyOn(prisma.osc, 'findUnique')
+        .mockResolvedValue(mockOsc);
 
       const result = await service.findOne('osc-123');
 
-      expect(prisma.osc.findUnique).toHaveBeenCalledWith({ where: { id: 'osc-123' } });
+      expect(findUniqueSpy).toHaveBeenCalledWith({
+        where: { id: 'osc-123' },
+      });
       expect(result).toEqual(mockOsc);
     });
 
     it('should throw NotFoundException when OSC does not exist', async () => {
       jest.spyOn(prisma.osc, 'findUnique').mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('update', () => {
     it('should update and return the OSC', async () => {
       const updated = { ...mockOsc, name: 'Updated Name' };
-      jest.spyOn(prisma.osc, 'update').mockResolvedValue(updated);
+      const updateSpy = jest
+        .spyOn(prisma.osc, 'update')
+        .mockResolvedValue(updated);
 
       const result = await service.update('osc-123', { name: 'Updated Name' });
 
-      expect(prisma.osc.update).toHaveBeenCalledWith({
+      expect(updateSpy).toHaveBeenCalledWith({
         where: { id: 'osc-123' },
         data: { name: 'Updated Name' },
       });
