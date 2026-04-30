@@ -8,7 +8,12 @@ import { OscsModule } from './oscs/oscs.module';
 import { LoggerMiddleware } from './common/logger.middleware';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, OscsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    AuthModule,
+    OscsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

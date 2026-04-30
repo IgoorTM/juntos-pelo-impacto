@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOscDto } from './dtos/create-osc.dto';
@@ -39,7 +43,8 @@ export class OscsService {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') throw new NotFoundException('OSC not found');
-        if (e.code === 'P2002') throw new ConflictException('OSC name already registered');
+        if (e.code === 'P2002')
+          throw new ConflictException('OSC name already registered');
       }
       throw e;
     }
