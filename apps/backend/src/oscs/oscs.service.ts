@@ -34,6 +34,14 @@ export class OscsService {
   }
 
   async update(id: string, dto: UpdateOscDto) {
-    return null;
+    try {
+      return await this.prisma.osc.update({ where: { id }, data: dto });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') throw new NotFoundException('OSC not found');
+        if (e.code === 'P2002') throw new ConflictException('OSC name already registered');
+      }
+      throw e;
+    }
   }
 }

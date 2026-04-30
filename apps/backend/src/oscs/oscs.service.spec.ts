@@ -116,4 +116,43 @@ describe('OscsService', () => {
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
+
+  describe('update', () => {
+    it('should update and return the OSC', async () => {
+      const updated = { ...mockOsc, name: 'Updated Name' };
+      jest.spyOn(prisma.osc, 'update').mockResolvedValue(updated);
+
+      const result = await service.update('osc-123', { name: 'Updated Name' });
+
+      expect(prisma.osc.update).toHaveBeenCalledWith({
+        where: { id: 'osc-123' },
+        data: { name: 'Updated Name' },
+      });
+      expect(result).toEqual(updated);
+    });
+
+    it('should throw NotFoundException when OSC does not exist', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Record not found',
+        { code: 'P2025', clientVersion: '6.0.0' },
+      );
+      jest.spyOn(prisma.osc, 'update').mockRejectedValue(prismaError);
+
+      await expect(
+        service.update('nonexistent', { status: 'BLOCKED' as const }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ConflictException when name already exists', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        { code: 'P2002', clientVersion: '6.0.0' },
+      );
+      jest.spyOn(prisma.osc, 'update').mockRejectedValue(prismaError);
+
+      await expect(
+        service.update('osc-123', { name: 'Duplicate Name' }),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
 });
