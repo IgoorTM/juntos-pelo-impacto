@@ -2,18 +2,18 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OscsService } from './oscs.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-const mockOsc = {
-  id: 'osc-123',
-  name: 'OSC Test',
-  description: 'A test OSC',
-  email: 'osc@test.com',
-  phone: null,
-  status: 'AVAILABLE' as const,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
 describe('OscsService', () => {
+  const mockOsc = {
+    id: 'osc-123',
+    name: 'OSC Test',
+    description: 'A test OSC',
+    email: 'osc@test.com',
+    phone: null,
+    status: 'AVAILABLE' as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
   let service: OscsService;
   let prisma: PrismaService;
 
