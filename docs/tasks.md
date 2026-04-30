@@ -55,7 +55,7 @@ Fluxo central do aluno. RF006, RF007, RF012, RF014.
 - Criar `TeamsModule` com controller, service e DTOs (ou incorporar no `ProjectsModule` via sub-recursos)
 - Implementar gerador de `code` unico de 6 caracteres (charset `A-Z` + `2-9`, exclui `0`, `O`, `I`, `1`)
 - Endpoint `POST /projects` — em transacao: cria `Project` (`status = IN_PROGRESS`) com `{ name, oscId }`, cria `Team` do semestre atual, insere criador em `TeamMember` e define `Osc.status = IN_PROGRESS`
-- Endpoint `POST /projects/:id/teams` — cria `Team` para o semestre atual em projeto com `status IN (ONGOING, INCOMPLETE)` e reativa `Project.status = IN_PROGRESS`; rejeita com `409` se ja existe equipe para este projeto no semestre atual
+- Endpoint `POST /projects/:id/continue` — cria `Team` para o semestre atual em projeto com `status IN (ONGOING, INCOMPLETE)` e reativa `Project.status = IN_PROGRESS`; rejeita com `409` se ja existe equipe para este projeto no semestre atual
 - Endpoint `GET /projects` — COORDINATOR ve todos; STUDENT ve A ∪ B (A = projetos em que participa via `TeamMember`, B = projetos continuaveis com `status IN (ONGOING, INCOMPLETE)`)
 - Endpoint `GET /projects/:id` — mesma regra de visibilidade da listagem; `404` para STUDENT fora de A ∪ B
 - Endpoint `PATCH /projects/:id/status` — aceita `IN_PROGRESS | COMPLETED | ABANDONED | ONGOING | INCOMPLETE`; libera OSC apenas em `COMPLETED/ABANDONED`; traduz conflito de unique parcial para `409`
@@ -140,8 +140,8 @@ Telas restritas a `COORDINATOR`. Cada tela consome endpoints definidos em `api.m
   - Listagem de todas as OSCs com status (Badge por cor)
   - Botao "Nova OSC" que abre modal com campos: nome, descricao, email (opcional), phone (opcional)
   - Feedback de erro: nome duplicado (`409`)
-  - Acao de alterar status: dropdown inline ou modal com selecao de novo status
-  - Feedback de erro ao tentar `IN_PROGRESS -> AVAILABLE` com projeto ativo: exibir `409` com nome do projeto pendente (campo `details.projectName` do erro)
+  - Acao de alterar campos da OSC (nome, descricao, email, phone, status): modal com formulario de edicao
+  - Feedback de erro: nome duplicado (`409`)
 - Tela `/projects`:
   - Listagem separada visualmente por semestre (atual vs. anteriores)
   - Projetos `IN_PROGRESS` de semestres anteriores destacados como pendentes de fechamento
@@ -159,7 +159,7 @@ Telas restritas a `STUDENT`. Todas as acoes do aluno passam pela tela `/projects
   - Tres acoes principais:
     - **Criar novo projeto:** formulario com nome do projeto + selecao de OSC disponivel (lista de `GET /oscs` filtrada por `AVAILABLE`). Apos sucesso, exibir modal de confirmacao com o `code` da equipe gerada (destaque visual + botao copiar)
     - **Entrar em equipe:** formulario com campo de codigo de 6 caracteres (`POST /teams/join`). Feedback: equipe nao encontrada (`404`), ja e membro (`409`), sucesso com dados da equipe e projeto
-    - **Continuar projeto:** seleciona projeto da lista de continuaveis, confirma (`POST /projects/:id/teams`). Apos sucesso, exibir `code` da nova equipe gerada (mesmo padrao de "Criar novo projeto")
+    - **Continuar projeto:** seleciona projeto da lista de continuaveis, confirma (`POST /projects/:id/continue`). Apos sucesso, exibir `code` da nova equipe gerada (mesmo padrao de "Criar novo projeto")
 
 ## Dependencias entre fases
 
