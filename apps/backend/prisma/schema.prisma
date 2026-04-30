@@ -28,13 +28,13 @@ enum ProjectStatus {
 }
 
 model User {
-  id           String       @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
-  email        String       @unique
+  email        String   @unique
   passwordHash String
   role         UserRole
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   createdTeams Team[]       @relation("TeamCreator")
   teamMembers  TeamMember[]
