@@ -150,4 +150,90 @@ describe('ProjectsService', () => {
       ]);
     });
   });
+
+  const mockProjectFull = {
+    id: 'proj-1',
+    name: 'Projeto Test',
+    oscId: 'osc-1',
+    status: 'IN_PROGRESS' as const,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    osc: { id: 'osc-1', name: 'OSC Test' },
+    teams: [
+      {
+        id: 'team-1',
+        semester: '2026-1',
+        code: 'ABCDEF',
+        createdBy: 'user-1',
+        projectId: 'proj-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [{ user: { id: 'user-1', name: 'Aluno Test' } }],
+      },
+    ],
+  };
+
+  describe('findAll', () => {
+    it('returns all projects with osc, teams and members', async () => {
+      jest.spyOn(prisma.project, 'findMany').mockResolvedValue([mockProjectFull] as any);
+
+      const result = await service.findAll();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].osc).toEqual({ id: 'osc-1', name: 'OSC Test' });
+      expect(result[0].teams[0].members).toEqual([{ id: 'user-1', name: 'Aluno Test' }]);
+    });
+  });
+
+  describe('findOne', () => {
+    it('returns a project by id', async () => {
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValue(mockProjectFull as any);
+
+      const result = await service.findOne('proj-1');
+
+      expect(result.id).toBe('proj-1');
+      expect(result.teams[0].code).toBe('ABCDEF');
+    });
+
+    it('throws NotFoundException when project does not exist', async () => {
+      jest.spyOn(prisma.project, 'findUnique').mockResolvedValue(null);
+
+      await expect(service.findOne('nope')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('updates and returns the project', async () => {
+      const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
+
+      const result = await service.updateStatus('proj-1', 'COMPLETED' as any);
+
+      expect(result.status).toBe('COMPLETED');
+    });
+
+    it('throws NotFoundException when project does not exist', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Record not found',
+        { code: 'P2025', clientVersion: '6.0.0' },
+      );
+      jest.spyOn(prisma.project, 'update').mockRejectedValue(prismaError);
+
+      await expect(service.updateStatus('nope', 'COMPLETED' as any)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ConflictException on partial unique index violation', async () => {
+      const prismaError = new Prisma.PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        { code: 'P2002', clientVersion: '6.0.0' },
+      );
+      jest.spyOn(prisma.project, 'update').mockRejectedValue(prismaError);
+
+      await expect(
+        service.updateStatus('proj-1', 'IN_PROGRESS' as any),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
 });

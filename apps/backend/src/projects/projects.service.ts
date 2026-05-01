@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeamsService } from '../teams/teams.service';
 import { getCurrentSemester } from '../common/get-current-semester';
@@ -16,6 +16,73 @@ export class ProjectsService {
     private prisma: PrismaService,
     private teamsService: TeamsService,
   ) {}
+
+  private readonly projectInclude = {
+    osc: { select: { id: true, name: true } },
+    teams: {
+      orderBy: { createdAt: 'desc' as const },
+      include: {
+        members: {
+          include: { user: { select: { id: true, name: true } } },
+        },
+      },
+    },
+  } as const;
+
+  private mapProject(project: any) {
+    return {
+      id: project.id,
+      name: project.name,
+      status: project.status,
+      osc: project.osc,
+      teams: project.teams.map((team: any) => ({
+        id: team.id,
+        semester: team.semester,
+        code: team.code,
+        members: team.members.map((m: any) => ({
+          id: m.user.id,
+          name: m.user.name,
+        })),
+      })),
+    };
+  }
+
+  async findAll() {
+    const projects = await this.prisma.project.findMany({
+      include: this.projectInclude,
+    });
+    return projects.map((p) => this.mapProject(p));
+  }
+
+  async findOne(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: this.projectInclude,
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    return this.mapProject(project);
+  }
+
+  async updateStatus(id: string, status: ProjectStatus) {
+    try {
+      const project = await this.prisma.project.update({
+        where: { id },
+        data: { status },
+        include: this.projectInclude,
+      });
+      return this.mapProject(project);
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') throw new NotFoundException('Project not found');
+        if (e.code === 'P2002') {
+          throw new ConflictException(
+            'Status conflict: another active project already occupies this OSC',
+          );
+        }
+      }
+      throw e;
+    }
+  }
 
   async create(userId: string, dto: CreateProjectDto) {
     const MAX_CODE_ATTEMPTS = 5;
