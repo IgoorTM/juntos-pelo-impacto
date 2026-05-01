@@ -54,13 +54,17 @@ describe('DashboardService', () => {
 
   describe('getDashboard', () => {
     beforeEach(() => {
-      jest.spyOn(prisma.osc, 'count').mockImplementation((args?: any) => {
+      jest.spyOn(prisma.osc, 'count').mockImplementation(((args?: {
+        where?: { status?: string };
+      }) => {
         if (!args?.where) return Promise.resolve(12);
         if (args.where.status === 'IN_PROGRESS') return Promise.resolve(3);
         return Promise.resolve(9);
-      });
+      }) as any);
       jest.spyOn(prisma.project, 'count').mockResolvedValue(3);
-      jest.spyOn(prisma.appConfig, 'findFirst').mockResolvedValue(mockAppConfig);
+      jest
+        .spyOn(prisma.appConfig, 'findFirst')
+        .mockResolvedValue(mockAppConfig);
     });
 
     it('returns all metrics and signUp state', async () => {
