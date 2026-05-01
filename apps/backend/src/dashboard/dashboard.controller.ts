@@ -22,6 +22,8 @@ export class DashboardController {
   })
   @ApiResponse({ status: 200, type: DashboardResponseDto })
   @ApiResponse({ status: 403, description: 'Forbidden' })
+  @ApiResponse({ status: 401, description: 'Unauthenticated' })
+  @ApiResponse({ status: 500, description: 'AppConfig missing in database' })
   getDashboard() {
     return this.dashboardService.getDashboard();
   }
