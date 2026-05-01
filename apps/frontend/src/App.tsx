@@ -1,5 +1,11 @@
-// Router setup is intentionally omitted — react-router will be installed in Task 4.
-// BrowserRouter + Routes will be wired up at that point.
+import { BrowserRouter, Routes, Route } from 'react-router'
+
 export function App() {
-  return <p>Juntos pelo Impacto</p>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<p>Juntos pelo Impacto</p>} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
