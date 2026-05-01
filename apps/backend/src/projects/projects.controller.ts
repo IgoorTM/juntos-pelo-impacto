@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Request,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -23,15 +31,17 @@ export class ProjectsController {
 
   @Post()
   @Roles('STUDENT')
-  @ApiOperation({ summary: 'Cria projeto com equipe do semestre atual (STUDENT)' })
+  @ApiOperation({
+    summary: 'Cria projeto com equipe do semestre atual (STUDENT)',
+  })
   @ApiResponse({ status: 201, description: 'Projeto criado com sucesso' })
   @ApiResponse({ status: 404, description: 'OSC nao encontrada' })
-  @ApiResponse({ status: 409, description: 'OSC nao disponivel ou nome duplicado' })
+  @ApiResponse({
+    status: 409,
+    description: 'OSC nao disponivel ou nome duplicado',
+  })
   @ApiResponse({ status: 422, description: 'Validacao falhou' })
-  create(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: CreateProjectDto,
-  ) {
+  create(@Request() req: AuthenticatedRequest, @Body() dto: CreateProjectDto) {
     return this.projectsService.create(req.user.userId, dto);
   }
 
@@ -58,10 +68,7 @@ export class ProjectsController {
   @ApiResponse({ status: 404, description: 'Projeto nao encontrado' })
   @ApiResponse({ status: 409, description: 'Conflito de unicidade' })
   @ApiResponse({ status: 422, description: 'Validacao falhou' })
-  updateStatus(
-    @Param('id') id: string,
-    @Body() dto: UpdateProjectStatusDto,
-  ) {
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateProjectStatusDto) {
     return this.projectsService.updateStatus(id, dto.status);
   }
 }

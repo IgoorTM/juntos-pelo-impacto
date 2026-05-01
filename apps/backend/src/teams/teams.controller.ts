@@ -22,15 +22,17 @@ export class TeamsController {
 
   @Post('join')
   @Roles('STUDENT')
-  @ApiOperation({ summary: 'Aluno entra em equipe existente pelo codigo de 6 caracteres' })
-  @ApiResponse({ status: 200, description: 'Entrada na equipe realizada com sucesso' })
+  @ApiOperation({
+    summary: 'Aluno entra em equipe existente pelo codigo de 6 caracteres',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Entrada na equipe realizada com sucesso',
+  })
   @ApiResponse({ status: 404, description: 'Equipe nao encontrada' })
   @ApiResponse({ status: 409, description: 'Aluno ja e membro desta equipe' })
   @ApiResponse({ status: 422, description: 'Validacao falhou' })
-  joinTeam(
-    @Request() req: AuthenticatedRequest,
-    @Body() dto: JoinTeamDto,
-  ) {
+  joinTeam(@Request() req: AuthenticatedRequest, @Body() dto: JoinTeamDto) {
     return this.teamsService.joinTeam(req.user.userId, dto.code);
   }
 }

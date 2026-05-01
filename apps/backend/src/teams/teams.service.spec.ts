@@ -68,9 +68,7 @@ describe('TeamsService', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       project: { id: 'proj-1', name: 'Projeto Test' },
-      members: [
-        { user: { id: 'user-2', name: 'Outro Aluno' } },
-      ],
+      members: [{ user: { id: 'user-2', name: 'Outro Aluno' } }],
     };
 
     beforeEach(() => {
@@ -86,7 +84,7 @@ describe('TeamsService', () => {
     });
 
     it('throws ConflictException when user is already a member', async () => {
-      jest.spyOn(prisma.team, 'findUnique').mockResolvedValue(mockTeam as any);
+      jest.spyOn(prisma.team, 'findUnique').mockResolvedValue(mockTeam);
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
         { code: 'P2002', clientVersion: '6.0.0' },
@@ -108,8 +106,8 @@ describe('TeamsService', () => {
       };
       jest
         .spyOn(prisma.team, 'findUnique')
-        .mockResolvedValueOnce(mockTeam as any)
-        .mockResolvedValueOnce(teamWithNewMember as any);
+        .mockResolvedValueOnce(mockTeam)
+        .mockResolvedValueOnce(teamWithNewMember);
       jest.spyOn(prisma.teamMember, 'create').mockResolvedValue({
         teamId: 'team-1',
         userId: 'user-99',
@@ -122,7 +120,10 @@ describe('TeamsService', () => {
       expect(result.code).toBe('ABCDEF');
       expect(result.project).toEqual({ id: 'proj-1', name: 'Projeto Test' });
       expect(result.members).toHaveLength(2);
-      expect(result.members).toContainEqual({ id: 'user-99', name: 'Novo Aluno' });
+      expect(result.members).toContainEqual({
+        id: 'user-99',
+        name: 'Novo Aluno',
+      });
     });
   });
 });
