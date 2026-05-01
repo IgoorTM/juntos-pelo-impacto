@@ -1,6 +1,5 @@
 import MockAdapter from 'axios-mock-adapter'
 import { httpClient } from './httpClient'
-import type { ApiError } from './types'
 
 const mock = new MockAdapter(httpClient)
 
@@ -36,7 +35,7 @@ describe('httpClient', () => {
   describe('error interceptor', () => {
     it('throws ApiError with status and message on 401', async () => {
       mock.onGet('/test').reply(401, { message: 'Unauthorized' })
-      await expect(httpClient.get('/test')).rejects.toMatchObject<Partial<ApiError>>({
+      await expect(httpClient.get('/test')).rejects.toMatchObject({
         status: 401,
         message: 'Unauthorized',
       })
@@ -44,7 +43,7 @@ describe('httpClient', () => {
 
     it('throws ApiError with status and message on 422', async () => {
       mock.onGet('/test').reply(422, { message: 'Validation failed' })
-      await expect(httpClient.get('/test')).rejects.toMatchObject<Partial<ApiError>>({
+      await expect(httpClient.get('/test')).rejects.toMatchObject({
         status: 422,
         message: 'Validation failed',
       })
@@ -52,7 +51,7 @@ describe('httpClient', () => {
 
     it('throws ApiError with status 0 when no response', async () => {
       mock.onGet('/test').networkError()
-      await expect(httpClient.get('/test')).rejects.toMatchObject<Partial<ApiError>>({
+      await expect(httpClient.get('/test')).rejects.toMatchObject({
         status: 0,
       })
     })
