@@ -40,4 +40,4 @@ coverage/
 
 # IA 
 .superpowers/
-.claude/
+**/superpowers/*
