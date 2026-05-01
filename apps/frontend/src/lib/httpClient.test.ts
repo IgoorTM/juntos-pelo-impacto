@@ -12,7 +12,7 @@ afterEach(() => {
 describe('httpClient', () => {
   describe('auth interceptor', () => {
     it('injects Authorization header when token is in localStorage', async () => {
-      localStorage.setItem('token', 'test-token')
+      localStorage.setItem('accessToken', 'test-token')
       let capturedHeader: string | undefined
       mock.onGet('/test').reply((config) => {
         capturedHeader = config.headers?.Authorization as string | undefined
