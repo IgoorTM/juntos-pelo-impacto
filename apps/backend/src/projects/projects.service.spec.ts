@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProjectStatus } from '@prisma/client';
 import { ProjectsService } from './projects.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeamsService } from '../teams/teams.service';
@@ -207,7 +207,7 @@ describe('ProjectsService', () => {
       const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
       jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
 
-      const result = await service.updateStatus('proj-1', 'COMPLETED' as any);
+      const result = await service.updateStatus('proj-1', ProjectStatus.COMPLETED);
 
       expect(result.status).toBe('COMPLETED');
     });
@@ -219,7 +219,7 @@ describe('ProjectsService', () => {
       );
       jest.spyOn(prisma.project, 'update').mockRejectedValue(prismaError);
 
-      await expect(service.updateStatus('nope', 'COMPLETED' as any)).rejects.toThrow(
+      await expect(service.updateStatus('nope', ProjectStatus.COMPLETED)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -232,7 +232,7 @@ describe('ProjectsService', () => {
       jest.spyOn(prisma.project, 'update').mockRejectedValue(prismaError);
 
       await expect(
-        service.updateStatus('proj-1', 'IN_PROGRESS' as any),
+        service.updateStatus('proj-1', ProjectStatus.IN_PROGRESS),
       ).rejects.toThrow(ConflictException);
     });
   });

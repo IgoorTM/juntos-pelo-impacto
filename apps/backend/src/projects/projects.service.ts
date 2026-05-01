@@ -75,9 +75,7 @@ export class ProjectsService {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') throw new NotFoundException('Project not found');
         if (e.code === 'P2002') {
-          throw new ConflictException(
-            'Status conflict: another active project already occupies this OSC',
-          );
+          throw new ConflictException('Unique constraint violation');
         }
       }
       throw e;
