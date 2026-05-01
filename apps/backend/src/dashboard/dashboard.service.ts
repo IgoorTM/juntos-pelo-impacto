@@ -1,12 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { getCurrentSemester } from '../common/get-current-semester';
+import { DashboardResponseDto } from './dtos/dashboard-response.dto';
 
 @Injectable()
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboard() {
+  async getDashboard(): Promise<DashboardResponseDto> {
     const currentSemester = getCurrentSemester();
 
     const [totalOscs, activeProjects, blockedOscs, availableOscs, rawProjects, appConfig] =
