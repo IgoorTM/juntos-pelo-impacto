@@ -23,8 +23,6 @@ enum ProjectStatus {
   IN_PROGRESS
   COMPLETED
   ABANDONED
-  INCOMPLETE
-  ONGOING
 }
 
 model User {
