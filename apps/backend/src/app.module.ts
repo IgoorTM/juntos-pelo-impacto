@@ -5,6 +5,8 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { OscsModule } from './oscs/oscs.module';
+import { TeamsModule } from './teams/teams.module';
+import { ProjectsModule } from './projects/projects.module';
 import { LoggerMiddleware } from './common/logger.middleware';
 
 @Module({
@@ -13,6 +15,8 @@ import { LoggerMiddleware } from './common/logger.middleware';
     PrismaModule,
     AuthModule,
     OscsModule,
+    TeamsModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
