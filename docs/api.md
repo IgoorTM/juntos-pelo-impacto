@@ -159,11 +159,7 @@ Sem restrição de transição de status — o coordenador define o status livre
 ### GET /projects
 Lista projetos.
 
-**Autenticado.**
-- `COORDINATOR`: todos os projetos.
-- `STUDENT`: A ∪ B, onde:
-  - A = projetos em que é membro (`TeamMember`)
-  - B = projetos continuáveis (`status IN (ONGOING, INCOMPLETE)`)
+**COORDINATOR.** Retorna todos os projetos.
 
 Response `200`:
 ```json
@@ -171,7 +167,7 @@ Response `200`:
   {
     "id": "string",
     "name": "string",
-    "status": "IN_PROGRESS | COMPLETED | ABANDONED | INCOMPLETE | ONGOING",
+    "status": "IN_PROGRESS | COMPLETED | ABANDONED",
     "osc": { "id": "string", "name": "string" },
     "teams": [
       {
@@ -190,12 +186,10 @@ Response `200`:
 ### GET /projects/:id
 Retorna detalhe de um projeto.
 
-**Autenticado.**
-- `COORDINATOR`: acessa qualquer projeto.
-- `STUDENT`: acessa somente se o projeto estiver em A ∪ B (mesma regra da listagem).
+**Autenticado.** Qualquer usuário autenticado pode acessar qualquer projeto.
 
 Response `200`: mesmo shape de um item de `GET /projects`.
-Erros: `404` projeto não encontrado ou sem visibilidade para STUDENT.
+Erros: `404` projeto não encontrado.
 
 ---
 
@@ -229,46 +223,18 @@ Erros: `404` OSC não encontrada; `409` OSC não está `AVAILABLE`; `409` nome d
 
 ---
 
-### POST /projects/:id/continue
-Continua um projeto existente em novo semestre — nova equipe assume o projeto (RF012).
-
-**STUDENT.** Em transação: cria `Team` com semestre atual e `createdBy` do aluno criador, insere criador em `TeamMember` e atualiza `Project.status = IN_PROGRESS`.
-
-Request: sem body.
-
-Response `201`:
-```json
-{
-  "id": "string",
-  "semester": "string",
-  "code": "string",
-  "members": [{ "id": "string", "name": "string" }]
-}
-```
-Erros: `404` projeto não encontrado; `400` projeto não está em `ONGOING`/`INCOMPLETE`; `409` já existe equipe para este projeto no semestre atual.
-
----
-
 ### PATCH /projects/:id/status
 Define o status de um projeto.
 
-**COORDINATOR.** Impactos automáticos na OSC:
-
-| Status | Ação na OSC |
-|---|---|
-| `IN_PROGRESS` | Sem ação automática |
-| `COMPLETED` | `Osc.status -> AVAILABLE` (mesma transação) |
-| `ABANDONED` | `Osc.status -> AVAILABLE` (mesma transação) |
-| `ONGOING` | Sem ação automática |
-| `INCOMPLETE` | Sem ação automática |
+**COORDINATOR.** Sem efeito automático no status da OSC — o coordenador gerencia a OSC manualmente via `PATCH /oscs/:id`.
 
 Request:
 ```json
-{ "status": "IN_PROGRESS | COMPLETED | ABANDONED | ONGOING | INCOMPLETE" }
+{ "status": "IN_PROGRESS | COMPLETED | ABANDONED" }
 ```
 Response `200`: projeto atualizado.
 
-Erros: `404` projeto não encontrado; `409` conflito de unicidade parcial (`project_osc_active_unique`) ao reabrir projeto.
+Erros: `404` projeto não encontrado.
 
 ---
 

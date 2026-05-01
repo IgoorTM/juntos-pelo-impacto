@@ -43,11 +43,10 @@
 
 | Rota | Método | Coordenador | Aluno | Observação |
 |---|---|---|---|---|
-| `/projects` | `GET` | Todos os projetos | Projetos em que é membro (`TeamMember`) **+** projetos continuáveis (`ONGOING`/`INCOMPLETE`) | Regra A ∪ B para Aluno |
-| `/projects/:id` | `GET` | Sim | Sim, se o projeto estiver em A ∪ B | Fora de A ∪ B retorna `404` para Aluno |
-| `/projects` | `POST` | Não | Sim | Fluxo A — body `{ name, oscId }` com OSC `AVAILABLE`. Cria Project + Team e move `Osc.status → IN_PROGRESS` em uma transação |
-| `/projects/:id/continue` | `POST` | Não | Sim | Continuação por qualquer Aluno. Só projetos com `status IN (ONGOING, INCOMPLETE)`. Cria Team e reativa projeto (`status → IN_PROGRESS`) |
-| `/projects/:id/status` | `PATCH` | Sim | Não | RF014 — define status ao encerrar semestre |
+| `/projects` | `GET` | Todos os projetos | Não tem acesso | |
+| `/projects/:id` | `GET` | Sim | Sim | Qualquer usuário autenticado |
+| `/projects` | `POST` | Não | Sim | Body `{ name, oscId }` com OSC `AVAILABLE`. Cria Project + Team e move `Osc.status → IN_PROGRESS` em transação |
+| `/projects/:id/status` | `PATCH` | Sim | Não | Define status: `IN_PROGRESS`, `COMPLETED` ou `ABANDONED`. Sem efeito automático na OSC |
 
 ### Teams
 

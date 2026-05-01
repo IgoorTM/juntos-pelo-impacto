@@ -87,10 +87,8 @@ OscStatus
 
 ProjectStatus
   IN_PROGRESS  — projeto ativo no semestre atual
-  COMPLETED    — concluído com sucesso
+  COMPLETED    — concluido com sucesso
   ABANDONED    — abandonado pela equipe
-  INCOMPLETE   — não concluído, sem continuação definida
-  ONGOING      — continua no próximo semestre com nova equipe
 ```
 
 ## 3. Diagrama de relações
@@ -128,15 +126,6 @@ Ao iniciar/entrar em um projeto no semestre, o aluno escolhe entre dois caminhos
   3. Cria `Team` com o semestre atual (ver "Cálculo de semestre") e `createdBy = user`.
   4. Insere o criador em `TeamMember`.
 
-**B. Continuar projeto existente**
-- Listagem exibida: projetos com `status IN (ONGOING, INCOMPLETE)`. A continuação herda a OSC do projeto — o `oscId` não muda.
-- Ao submeter (`POST /projects/:id/teams`, sem body), em uma única transação:
-  1. Cria `Team` vinculada ao `Project` selecionado, com o semestre atual e `createdBy = user`.
-  2. Insere o criador em `TeamMember`.
-  3. Atualiza `Project.status = IN_PROGRESS`.
-
-Qualquer aluno pode submeter o fluxo B (não é exigido ter participado de equipes anteriores do projeto).
-
 Em ambos os fluxos, o criador é líder (`Team.createdBy`) e também membro (`TeamMember`). Após a criação, o líder compartilha o `code` da nova `Team` com os colegas, que entram via `POST /teams/join` (ver "Entrada em equipe por código").
 
 ### Entrada em equipe por código (RF012)
@@ -146,15 +135,15 @@ O aluno informa o `code` da equipe (6 caracteres). O sistema busca a `Team` pelo
 A OSC é escolhida pelo aluno no ato de criar ou continuar o projeto (fluxos A e B acima). Não existe endpoint separado de "selecionar OSC" após a criação. Como quem submete é também o líder (`Team.createdBy` da nova equipe), a restrição "apenas o líder seleciona" é atendida trivialmente.
 
 ### Impacto do ProjectStatus na OSC (RF014)
-O coordenador atualiza `Project.status` ao final de cada semestre via `PATCH /projects/:id/status`. Cada valor impacta a OSC:
+O coordenador atualiza `Project.status` ao final de cada semestre via `PATCH /projects/:id/status`. As mudanças de status do projeto **não alteram automaticamente** o status da OSC:
 
-| ProjectStatus | Ação na OSC |
+| ProjectStatus | Acao na OSC |
 |---|---|
-| `IN_PROGRESS` | Sem ação automática |
-| `COMPLETED` | `Osc.status → AVAILABLE` (automático na mesma transação) |
-| `ABANDONED` | `Osc.status → AVAILABLE` (automático na mesma transação) |
-| `ONGOING` | Sem ação automática (`Osc.status` permanece como estiver) |
-| `INCOMPLETE` | Sem ação automática |
+| `IN_PROGRESS` | Sem acao automatica |
+| `COMPLETED` | Sem acao automatica |
+| `ABANDONED` | Sem acao automatica |
+
+O coordenador gerencia o status da OSC manualmente via `PATCH /oscs/:id`, de forma independente do status do projeto. A unica operacao que altera o status da OSC automaticamente e `POST /projects`, que seta `Osc.status = IN_PROGRESS` ao criar um projeto.
 
 OSCs com `status = IN_PROGRESS` ou `BLOCKED` não aparecem na listagem de disponíveis para alunos.
 
@@ -173,7 +162,7 @@ A rota `POST /auth/sign-up` verifica `AppConfig.signUpEnabled` antes de processa
 `Project` onde `oscId IS NOT NULL` e `status = IN_PROGRESS`.
 
 ### Projetos pendentes de fechamento — dashboard (RF009)
-`Project` com `status = IN_PROGRESS` cuja `Team` mais recente (ordenação por `Team.createdAt` desc) pertence a um semestre anterior ao atual. Indica que o Coordenador esqueceu de definir o status final (`COMPLETED`, `ABANDONED`, `ONGOING`, `INCOMPLETE`) ao encerrar o semestre anterior. Exibidos como alerta no dashboard e destacados na tela de gestão de projetos.
+`Project` com `status = IN_PROGRESS` cuja `Team` mais recente (ordenação por `Team.createdAt` desc) pertence a um semestre anterior ao atual. Indica que o Coordenador esqueceu de definir o status final (`COMPLETED` ou `ABANDONED`) ao encerrar o semestre anterior. Exibidos como alerta no dashboard e destacados na tela de gestão de projetos.
 
 ## 5. Índices
 
