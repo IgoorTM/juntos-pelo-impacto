@@ -9,7 +9,6 @@ describe('ProjectsService', () => {
   let module: TestingModule;
   let service: ProjectsService;
   let prisma: PrismaService;
-  let teamsService: TeamsService;
 
   const mockOsc = {
     id: 'osc-1',
@@ -80,7 +79,6 @@ describe('ProjectsService', () => {
 
     service = module.get<ProjectsService>(ProjectsService);
     prisma = module.get<PrismaService>(PrismaService);
-    teamsService = module.get<TeamsService>(TeamsService);
   });
 
   it('should be defined', () => {
@@ -90,7 +88,9 @@ describe('ProjectsService', () => {
   describe('create', () => {
     beforeEach(() => {
       jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockCreator);
-      (prisma.$transaction as jest.Mock).mockImplementation((fn) => fn(prisma));
+      (prisma.$transaction as jest.Mock).mockImplementation(
+        (fn: (tx: PrismaService) => Promise<unknown>) => fn(prisma),
+      );
     });
 
     it('throws NotFoundException when OSC does not exist', async () => {
@@ -128,9 +128,11 @@ describe('ProjectsService', () => {
       jest.spyOn(prisma.osc, 'findUnique').mockResolvedValue(mockOsc);
       jest.spyOn(prisma.project, 'create').mockResolvedValue(mockProject);
       jest.spyOn(prisma.team, 'create').mockResolvedValue(mockTeam);
-      jest
-        .spyOn(prisma.teamMember, 'create')
-        .mockResolvedValue({ teamId: 'team-1', userId: 'user-1', joinedAt: new Date() });
+      jest.spyOn(prisma.teamMember, 'create').mockResolvedValue({
+        teamId: 'team-1',
+        userId: 'user-1',
+        joinedAt: new Date(),
+      });
       jest
         .spyOn(prisma.osc, 'update')
         .mockResolvedValue({ ...mockOsc, status: 'IN_PROGRESS' as const });
@@ -175,19 +177,25 @@ describe('ProjectsService', () => {
 
   describe('findAll', () => {
     it('returns all projects with osc, teams and members', async () => {
-      jest.spyOn(prisma.project, 'findMany').mockResolvedValue([mockProjectFull] as any);
+      jest
+        .spyOn(prisma.project, 'findMany')
+        .mockResolvedValue([mockProjectFull]);
 
       const result = await service.findAll();
 
       expect(result).toHaveLength(1);
       expect(result[0].osc).toEqual({ id: 'osc-1', name: 'OSC Test' });
-      expect(result[0].teams[0].members).toEqual([{ id: 'user-1', name: 'Aluno Test' }]);
+      expect(result[0].teams[0].members).toEqual([
+        { id: 'user-1', name: 'Aluno Test' },
+      ]);
     });
   });
 
   describe('findOne', () => {
     it('returns a project by id', async () => {
-      jest.spyOn(prisma.project, 'findUnique').mockResolvedValue(mockProjectFull as any);
+      jest
+        .spyOn(prisma.project, 'findUnique')
+        .mockResolvedValue(mockProjectFull);
 
       const result = await service.findOne('proj-1');
 
@@ -205,9 +213,12 @@ describe('ProjectsService', () => {
   describe('updateStatus', () => {
     it('updates and returns the project', async () => {
       const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
-      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
 
-      const result = await service.updateStatus('proj-1', ProjectStatus.COMPLETED);
+      const result = await service.updateStatus(
+        'proj-1',
+        ProjectStatus.COMPLETED,
+      );
 
       expect(result.status).toBe('COMPLETED');
     });
@@ -219,9 +230,9 @@ describe('ProjectsService', () => {
       );
       jest.spyOn(prisma.project, 'update').mockRejectedValue(prismaError);
 
-      await expect(service.updateStatus('nope', ProjectStatus.COMPLETED)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateStatus('nope', ProjectStatus.COMPLETED),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('throws ConflictException on partial unique index violation', async () => {

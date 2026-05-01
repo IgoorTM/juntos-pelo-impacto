@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -28,7 +32,9 @@ export class TeamsService {
     if (!team) throw new NotFoundException('Team not found');
 
     try {
-      await this.prisma.teamMember.create({ data: { teamId: team.id, userId } });
+      await this.prisma.teamMember.create({
+        data: { teamId: team.id, userId },
+      });
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -46,13 +52,17 @@ export class TeamsService {
         members: { include: { user: { select: { id: true, name: true } } } },
       },
     });
+    if (!updated) throw new NotFoundException('Team not found');
 
     return {
       id: updated.id,
       semester: updated.semester,
       code: updated.code,
       project: updated.project,
-      members: updated.members.map((m) => ({ id: m.user.id, name: m.user.name })),
+      members: updated.members.map((m) => ({
+        id: m.user.id,
+        name: m.user.name,
+      })),
     };
   }
 }

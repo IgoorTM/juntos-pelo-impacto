@@ -10,6 +10,19 @@ import { TeamsService } from '../teams/teams.service';
 import { getCurrentSemester } from '../common/get-current-semester';
 import { CreateProjectDto } from './dtos/create-project.dto';
 
+interface ProjectRow {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+  osc: { id: string; name: string };
+  teams: Array<{
+    id: string;
+    semester: string;
+    code: string;
+    members: Array<{ user: { id: string; name: string } }>;
+  }>;
+}
+
 @Injectable()
 export class ProjectsService {
   constructor(
@@ -29,17 +42,17 @@ export class ProjectsService {
     },
   } as const;
 
-  private mapProject(project: any) {
+  private mapProject(project: ProjectRow) {
     return {
       id: project.id,
       name: project.name,
       status: project.status,
       osc: project.osc,
-      teams: project.teams.map((team: any) => ({
+      teams: project.teams.map((team) => ({
         id: team.id,
         semester: team.semester,
         code: team.code,
-        members: team.members.map((m: any) => ({
+        members: team.members.map((m) => ({
           id: m.user.id,
           name: m.user.name,
         })),
@@ -51,7 +64,7 @@ export class ProjectsService {
     const projects = await this.prisma.project.findMany({
       include: this.projectInclude,
     });
-    return projects.map((p) => this.mapProject(p));
+    return projects.map((p) => this.mapProject(p as unknown as ProjectRow));
   }
 
   async findOne(id: string) {
@@ -73,7 +86,8 @@ export class ProjectsService {
       return this.mapProject(project);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') throw new NotFoundException('Project not found');
+        if (e.code === 'P2025')
+          throw new NotFoundException('Project not found');
         if (e.code === 'P2002') {
           throw new ConflictException('Unique constraint violation');
         }
@@ -89,6 +103,7 @@ export class ProjectsService {
       where: { id: userId },
       select: { id: true, name: true },
     });
+    if (!creator) throw new NotFoundException('User not found');
 
     for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
       const code = this.teamsService.generateUniqueCode();

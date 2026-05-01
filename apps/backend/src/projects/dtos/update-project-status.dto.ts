@@ -8,5 +8,5 @@ export class UpdateProjectStatusDto {
     description: 'New status for the project',
   })
   @IsEnum(ProjectStatus)
-  status: ProjectStatus;
+  status!: ProjectStatus;
 }
