@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
 export default defineConfig({
+  cacheDir: '/tmp/vite-cache',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

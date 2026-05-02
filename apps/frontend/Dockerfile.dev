@@ -7,7 +7,10 @@ COPY package.json package-lock.json ./
 COPY apps/frontend/package.json apps/frontend/package.json
 COPY apps/backend/package.json apps/backend/package.json
 
-RUN npm ci --workspace @juntos/frontend --include-workspace-root
+RUN npm ci --workspace @juntos/frontend --include-workspace-root && \
+    chown -R node:node /repo
+
+USER node
 
 EXPOSE 5173
 
