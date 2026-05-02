@@ -14,6 +14,7 @@ interface ProjectRow {
   id: string;
   name: string;
   status: ProjectStatus;
+  oscId: string;
   osc: { id: string; name: string };
   teams: Array<{
     id: string;
@@ -78,19 +79,28 @@ export class ProjectsService {
 
   async updateStatus(id: string, status: ProjectStatus) {
     try {
-      const project = await this.prisma.project.update({
-        where: { id },
-        data: { status },
-        include: this.projectInclude,
+      return await this.prisma.$transaction(async (tx) => {
+        const project = await tx.project.update({
+          where: { id },
+          data: { status },
+          include: this.projectInclude,
+        }) as unknown as ProjectRow;
+
+        if (status === ProjectStatus.COMPLETED) {
+          await tx.osc.update({
+            where: { id: project.oscId },
+            data: { status: 'AVAILABLE' },
+          });
+        }
+
+        return this.mapProject(project);
       });
-      return this.mapProject(project);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025')
           throw new NotFoundException('Project not found');
-        if (e.code === 'P2002') {
+        if (e.code === 'P2002')
           throw new ConflictException('Unique constraint violation');
-        }
       }
       throw e;
     }
