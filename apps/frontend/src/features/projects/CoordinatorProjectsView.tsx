@@ -62,7 +62,7 @@ function StatusChangeModal({ project, onClose, onConfirm, saving, error }: Statu
   const [selected, setSelected] = useState<ProjectStatus>(project?.status ?? 'IN_PROGRESS')
   const [confirming, setConfirming] = useState(false)
 
-  const willReleaseOsc = selected === 'COMPLETED' || selected === 'ABANDONED'
+  const willReleaseOsc = selected === 'COMPLETED'
   const needsConfirmation = willReleaseOsc && !confirming
 
   function handleContinue() {
