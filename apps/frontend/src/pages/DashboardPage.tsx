@@ -120,9 +120,9 @@ export function DashboardPage() {
                 icon={<TrendingUp className="h-4 w-4" />}
               />
               <MetricCard
-                title="OSCs Bloqueadas"
-                value={data?.blockedOscs ?? 0}
-                icon={<Lock className="h-4 w-4" />}
+                title="Projetos pendentes"
+                value={data?.pendingProjects ?? 0}
+                icon={<AlertTriangle className="h-4 w-4" />}
               />
               <MetricCard
                 title="OSCs Disponíveis"
