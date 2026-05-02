@@ -26,5 +26,6 @@ function useAuth(): AuthContextValue {
   return ctx
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { AuthContext, useAuth }
 export type { AuthUser, AuthContextValue }

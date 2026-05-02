@@ -10,14 +10,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(
     () => localStorage.getItem(TOKEN_KEY)
   )
-  const [isLoading, setIsLoading] = useState(true)
+  // isLoading starts true only when there is a token to verify
+  const [isLoading, setIsLoading] = useState(() => !!localStorage.getItem(TOKEN_KEY))
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
+    if (!token) return
     httpClient
       .get<AuthUser>('/auth/me')
       .then((res) => setUser(res.data))

@@ -22,6 +22,7 @@ services:
       context: .
       dockerfile: apps/backend/Dockerfile.dev
     container_name: juntos_backend
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       NODE_ENV: development
       PORT: 3000
@@ -42,6 +43,7 @@ services:
       context: .
       dockerfile: apps/frontend/Dockerfile.dev
     container_name: juntos_frontend
+    user: "${UID:-1000}:${GID:-1000}"
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     depends_on:
