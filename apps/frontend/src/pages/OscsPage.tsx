@@ -92,7 +92,7 @@ function OscFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -175,7 +175,7 @@ function OscFormDialog({
             <p className="text-sm text-destructive">{validationError ?? error}</p>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="-mx-6 -mb-6 px-6 py-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
             </Button>
