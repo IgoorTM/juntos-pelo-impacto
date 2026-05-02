@@ -8,6 +8,7 @@ interface RoleRouteProps {
 
 const roleHome: Record<UserRole, string> = {
   COORDINATOR: '/dashboard',
+  ADMIN: '/dashboard',
   STUDENT: '/projects',
 }
 

@@ -5,10 +5,9 @@ import { RoleRoute } from '@/features/auth/RoleRoute'
 import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout'
 import { SignInPage } from '@/pages/SignInPage'
 import { SignUpPage } from '@/pages/SignUpPage'
-
-const DashboardPage = () => <p>Dashboard (Fase 6)</p>
-const OscsPage = () => <p>OSCs (Fase 6)</p>
-const ProjectsPage = () => <p>Projects (Fase 6/7)</p>
+import { DashboardPage } from '@/pages/DashboardPage'
+import { OscsPage } from '@/pages/OscsPage'
+import { ProjectsPage } from '@/pages/ProjectsPage'
 
 export function App() {
   return (
@@ -20,7 +19,7 @@ export function App() {
 
           <Route element={<PrivateRoute />}>
             <Route element={<AuthenticatedLayout />}>
-              <Route element={<RoleRoute allowedRoles={['COORDINATOR']} />}>
+              <Route element={<RoleRoute allowedRoles={['COORDINATOR', 'ADMIN']} />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/oscs" element={<OscsPage />} />
               </Route>
