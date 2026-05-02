@@ -68,7 +68,7 @@ export function SignInPage() {
       <div className="w-full max-w-sm">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-lg font-semibold">
+            <CardTitle className="text-center text-xl font-bold">
               Projeto Juntos pelo Impacto
             </CardTitle>
           </CardHeader>
