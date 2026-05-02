@@ -1,32 +1,36 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
+import { AuthProvider } from '@/features/auth/AuthProvider'
+import { PrivateRoute } from '@/features/auth/PrivateRoute'
+import { RoleRoute } from '@/features/auth/RoleRoute'
 import { AuthenticatedLayout } from '@/layouts/AuthenticatedLayout'
+import { SignInPage } from '@/pages/SignInPage'
+import { SignUpPage } from '@/pages/SignUpPage'
 
-// Public pages — implemented in Phase 5
-const SignInPage = () => <p>Sign In</p>
-const SignUpPage = () => <p>Sign Up</p>
+const DashboardPage = () => <p>Dashboard (Fase 6)</p>
+const OscsPage = () => <p>OSCs (Fase 6)</p>
+const ProjectsPage = () => <p>Projects (Fase 6/7)</p>
 
-// Protected pages — implemented in Phases 6 and 7
-const DashboardPage = () => <p>Dashboard</p>
-const OscsPage = () => <p>OSCs</p>
-const ProjectsPage = () => <p>Projects</p>
-
-// AuthProvider wraps this tree in Phase 5
 export function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
+      <AuthProvider>
+        <Routes>
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
 
-        {/* PrivateRoute + RoleRoute guards added in Phase 5 */}
-        <Route element={<AuthenticatedLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/oscs" element={<OscsPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-        </Route>
+          <Route element={<PrivateRoute />}>
+            <Route element={<AuthenticatedLayout />}>
+              <Route element={<RoleRoute allowedRoles={['COORDINATOR']} />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/oscs" element={<OscsPage />} />
+              </Route>
+              <Route path="/projects" element={<ProjectsPage />} />
+            </Route>
+          </Route>
 
-        <Route path="/" element={<Navigate to="/sign-in" replace />} />
-      </Routes>
+          <Route path="/" element={<Navigate to="/sign-in" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
