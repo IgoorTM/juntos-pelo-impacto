@@ -157,28 +157,59 @@ function OscFormDialog({
   )
 }
 
-function OscRowSkeleton() {
+function OscCardSkeleton() {
   return (
-    <tr>
-      <td className="px-4 py-3">
-        <Skeleton className="h-4 w-40" />
-      </td>
-      <td className="px-4 py-3">
-        <Skeleton className="h-4 w-56" />
-      </td>
-      <td className="px-4 py-3">
-        <Skeleton className="h-4 w-32" />
-      </td>
-      <td className="px-4 py-3">
-        <Skeleton className="h-4 w-24" />
-      </td>
-      <td className="px-4 py-3">
-        <Skeleton className="h-5 w-20 rounded-full" />
-      </td>
-      <td className="px-4 py-3">
-        <Skeleton className="h-8 w-8 rounded-md" />
-      </td>
-    </tr>
+    <Card>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-5 w-20 rounded-full" />
+          </div>
+          <Skeleton className="h-7 w-7 rounded-md" />
+        </div>
+        <Skeleton className="mt-3 h-4 w-full" />
+        <Skeleton className="mt-1 h-4 w-3/4" />
+      </CardContent>
+    </Card>
+  )
+}
+
+interface OscCardProps {
+  osc: Osc
+  onEdit: (osc: Osc) => void
+}
+
+function OscCard({ osc, onEdit }: OscCardProps) {
+  return (
+    <Card>
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold">{osc.name}</p>
+            <Badge tone={OSC_STATUS_TONE[osc.status]} className="mt-1">
+              {OSC_STATUS_LABEL[osc.status]}
+            </Badge>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onEdit(osc)}
+            aria-label={`Editar ${osc.name}`}
+            className="shrink-0"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{osc.description}</p>
+        {(osc.email || osc.phone) && (
+          <div className="mt-3 space-y-0.5 text-xs text-muted-foreground">
+            {osc.email && <p>{osc.email}</p>}
+            {osc.phone && <p>{osc.phone}</p>}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -187,6 +218,9 @@ export function OscsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<OscStatus | ''>('')
 
   const [createOpen, setCreateOpen] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
@@ -257,6 +291,10 @@ export function OscsPage() {
     }
   }
 
+  const filteredOscs = oscs
+    .filter((o) => !search || o.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((o) => !statusFilter || o.status === statusFilter)
+
   const editInitial: OscFormState | undefined = editTarget
     ? {
         name: editTarget.name,
@@ -269,14 +307,31 @@ export function OscsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">OSCs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Organizações da Sociedade Civil parceiras do programa.
-          </p>
-        </div>
-        <Button onClick={() => setCreateOpen(true)}>
+      <div>
+        <h1 className="text-2xl font-bold">OSCs</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Organizações da Sociedade Civil parceiras do programa.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          placeholder="Buscar OSC..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as OscStatus | '')}
+          className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <option value="">Todos os status</option>
+          <option value="AVAILABLE">Disponível</option>
+          <option value="IN_PROGRESS">Em andamento</option>
+          <option value="BLOCKED">Bloqueada</option>
+        </select>
+        <Button onClick={() => setCreateOpen(true)} className="ml-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nova OSC
         </Button>
@@ -292,69 +347,25 @@ export function OscsPage() {
       )}
 
       {!error && (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">Nome</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Descrição
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      E-mail
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Telefone
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground">
-                      Status
-                    </th>
-                    <th className="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    Array.from({ length: 4 }).map((_, i) => <OscRowSkeleton key={i} />)
-                  ) : oscs.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
-                        Nenhuma OSC cadastrada.
-                      </td>
-                    </tr>
-                  ) : (
-                    oscs.map((osc) => (
-                      <tr key={osc.id} className="border-b last:border-0 hover:bg-muted/40">
-                        <td className="px-4 py-3 font-medium">{osc.name}</td>
-                        <td className="max-w-xs truncate px-4 py-3 text-muted-foreground">
-                          {osc.description}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{osc.email ?? '—'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{osc.phone ?? '—'}</td>
-                        <td className="px-4 py-3">
-                          <Badge tone={OSC_STATUS_TONE[osc.status]}>
-                            {OSC_STATUS_LABEL[osc.status]}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => setEditTarget(osc)}
-                            aria-label={`Editar ${osc.name}`}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        <>
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <OscCardSkeleton key={i} />
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          ) : filteredOscs.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">
+              {oscs.length === 0 ? 'Nenhuma OSC cadastrada.' : 'Nenhuma OSC encontrada para os filtros aplicados.'}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {filteredOscs.map((osc) => (
+                <OscCard key={osc.id} osc={osc} onEdit={setEditTarget} />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* key resets internal form state each time the dialog opens */}
