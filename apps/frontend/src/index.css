@@ -36,24 +36,24 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.968 0.007 248);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.72 0.18 150);
+  --primary: oklch(0.279 0.041 260);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.97 0 0);
+  --secondary: oklch(0.929 0.013 256);
   --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.929 0.013 256);
+  --muted-foreground: oklch(0.554 0.046 257);
+  --accent: oklch(0.929 0.013 256);
+  --accent-foreground: oklch(0.208 0.042 266);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.869 0.022 253);
+  --input: oklch(0.869 0.022 253);
+  --ring: oklch(0.446 0.043 257);
   --radius: 0.625rem;
 }
 
@@ -90,12 +90,19 @@
   }
 }
 
-/* Project scale tokens — generate bg-primary-{50,100,600,700} and neutral utilities */
+/* Project scale tokens — slate-based to match design system */
 @theme {
-  --color-primary-50:  oklch(0.98 0.02 150);
-  --color-primary-100: oklch(0.96 0.05 150);
-  --color-primary-600: oklch(0.62 0.17 150);
-  --color-primary-700: oklch(0.55 0.16 150);
+  --color-primary-50:  oklch(0.984 0.003 248);
+  --color-primary-100: oklch(0.968 0.007 248);
+  --color-primary-600: oklch(0.446 0.043 257);
+  --color-primary-700: oklch(0.372 0.044 257);
 
   --color-neutral-900: oklch(0.18 0 0);
+
+  /* Sidebar dark bg and foreground */
+  --color-sidebar:            oklch(0.208 0.042 266);
+  --color-sidebar-foreground: oklch(0.984 0.003 248);
+  --color-sidebar-muted:      oklch(0.704 0.040 257);
+  --color-sidebar-active:     oklch(1 0 0);
+  --color-sidebar-active-fg:  oklch(0.208 0.042 266);
 }

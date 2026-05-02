@@ -33,9 +33,10 @@ describe('AuthenticatedLayout', () => {
     localStorage.clear()
   })
 
-  it('shows app name in header', () => {
+  it('shows app name', () => {
     renderLayout('COORDINATOR')
-    expect(screen.getByText('Juntos pelo Impacto')).toBeInTheDocument()
+    // name appears both in mobile header and desktop sidebar brand
+    expect(screen.getAllByText('Juntos pelo Impacto').length).toBeGreaterThan(0)
   })
 
   it('shows user name in header', () => {

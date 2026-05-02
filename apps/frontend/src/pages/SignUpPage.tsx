@@ -73,14 +73,11 @@ export function SignUpPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-primary-700">Juntos pelo Impacto</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Crie sua conta de aluno</p>
-        </div>
-
         <Card>
           <CardHeader>
-            <CardTitle>Criar conta</CardTitle>
+            <CardTitle className="text-center text-lg font-semibold">
+              Projeto Juntos pelo Impacto
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -98,6 +95,7 @@ export function SignUpPage() {
                 id="email"
                 type="email"
                 label="E-mail"
+                placeholder="seuemail@exemplo.com"
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange('email')}
@@ -126,7 +124,7 @@ export function SignUpPage() {
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Já tem conta?{' '}
-              <Link to="/sign-in" className="font-medium text-primary-700 hover:underline">
+              <Link to="/sign-in" className="font-medium text-primary hover:underline">
                 Entrar
               </Link>
             </p>

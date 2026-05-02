@@ -65,14 +65,11 @@ export function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-primary-700">Juntos pelo Impacto</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Acesse sua conta</p>
-        </div>
-
         <Card>
           <CardHeader>
-            <CardTitle>Entrar</CardTitle>
+            <CardTitle className="text-center text-lg font-semibold">
+              Projeto Juntos pelo Impacto
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
@@ -80,6 +77,7 @@ export function SignInPage() {
                 id="email"
                 type="email"
                 label="E-mail"
+                placeholder="seuemail@exemplo.com"
                 autoComplete="email"
                 value={form.email}
                 onChange={handleChange('email')}
@@ -108,7 +106,7 @@ export function SignInPage() {
 
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Não tem conta?{' '}
-              <Link to="/sign-up" className="font-medium text-primary-700 hover:underline">
+              <Link to="/sign-up" className="font-medium text-primary hover:underline">
                 Criar conta
               </Link>
             </p>
