@@ -11,7 +11,6 @@ Leia o documento relevante antes de implementar. Se uma instrucao conflitar com 
 | [docs/spech-delivery.md](docs/spech-delivery.md) | Requisitos funcionais (RF001-RF014), escopo do MVP, telas |
 | [docs/architecture.md](docs/architecture.md) | Stack, estrutura de pastas, workspaces, convencoes, idioma |
 | [docs/data-model.md](docs/data-model.md) | Entidades, relacoes, enums, regras de negocio, indices |
-| [docs/docker.md](docs/docker.md) | Dockerfiles, Compose, variaveis de ambiente |
 | [docs/rbac.md](docs/rbac.md) | Matriz de permissoes por perfil e endpoint |
 | [docs/api.md](docs/api.md) | Endpoints, request/response por modulo |
 | [docs/tasks.md](docs/tasks.md) | Quebra tecnica do MVP em fases ordenadas |
@@ -20,7 +19,7 @@ Leia o documento relevante antes de implementar. Se uma instrucao conflitar com 
 
 ### Documentar mudancas
 
-Toda mudanca estrutural deve ser documentada **na mesma entrega**: stack/pastas/convencoes → `docs/architecture.md`; Docker/env → `docs/docker.md`; modelo de dados → `docs/data-model.md`; RBAC → `docs/rbac.md`; API → `docs/api.md`; escopo MVP → `docs/spech-delivery.md` + confirmar com usuario; regras para IA → este arquivo.
+Toda mudanca estrutural deve ser documentada **na mesma entrega**: stack/pastas/convencoes → `docs/architecture.md`; modelo de dados → `docs/data-model.md`; RBAC → `docs/rbac.md`; API → `docs/api.md`; escopo MVP → `docs/spech-delivery.md` + confirmar com usuario; regras para IA → este arquivo.
 
 Padronizacao que nao esta nos documentos **nao existe**. Se aplicou convencao nao documentada, documente-a na mesma resposta.
 

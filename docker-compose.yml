@@ -28,6 +28,7 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-juntos}:${POSTGRES_PASSWORD:-juntos}@postgres:5432/${POSTGRES_DB:-juntos_dev}
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     depends_on:
       postgres:
         condition: service_healthy
@@ -35,7 +36,6 @@ services:
       - "${BACKEND_PORT:-3000}:3000"
     volumes:
       - ./apps/backend:/repo/apps/backend
-      - /repo/apps/backend/node_modules
       - /repo/node_modules
 
   frontend:
@@ -52,7 +52,6 @@ services:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./apps/frontend:/repo/apps/frontend
-      - /repo/apps/frontend/node_modules
       - /repo/node_modules
 
 volumes:

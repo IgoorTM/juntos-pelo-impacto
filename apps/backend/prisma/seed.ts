@@ -23,10 +23,10 @@ async function main() {
 
   await prisma.appConfig.upsert({
     where: { id: 1 },
-    update: {},
-    create: { id: 1, signUpEnabled: false },
+    update: { signUpEnabled: true },
+    create: { id: 1, signUpEnabled: true },
   });
-  console.log('AppConfig initialized (signUpEnabled = false)');
+  console.log('AppConfig initialized (signUpEnabled = true)');
 }
 
 main()

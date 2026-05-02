@@ -9,10 +9,13 @@ COPY apps/backend/package.json apps/backend/package.json
 
 COPY apps/backend/prisma apps/backend/prisma
 
-RUN npm ci --workspace @juntos/backend --include-workspace-root
+RUN npm ci --workspace @juntos/backend --include-workspace-root && \
+    chown -R node:node /repo
+
+USER node
 
 WORKDIR /repo/apps/backend
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start:dev"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npm run start:dev"]
