@@ -12,7 +12,8 @@ interface AuthContextValue {
   user: AuthUser | null
   accessToken: string | null
   isAuthenticated: boolean
-  signIn: (email: string, password: string) => Promise<void>
+  isLoading: boolean
+  signIn: (email: string, password: string) => Promise<AuthUser>
   signUp: (name: string, email: string, password: string) => Promise<void>
   signOut: () => void
 }

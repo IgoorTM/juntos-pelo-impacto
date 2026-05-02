@@ -11,6 +11,7 @@ function mockAuthValue(role: UserRole, signOut = vi.fn()): AuthContextValue {
     user: { id: '1', name: 'Test User', email: 'test@example.com', role },
     accessToken: 'token',
     isAuthenticated: true,
+    isLoading: false,
     signIn: vi.fn(),
     signUp: vi.fn(),
     signOut,
