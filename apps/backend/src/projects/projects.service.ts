@@ -80,11 +80,11 @@ export class ProjectsService {
   async updateStatus(id: string, status: ProjectStatus) {
     try {
       return await this.prisma.$transaction(async (tx) => {
-        const project = await tx.project.update({
+        const project = (await tx.project.update({
           where: { id },
           data: { status },
           include: this.projectInclude,
-        }) as unknown as ProjectRow;
+        })) as unknown as ProjectRow;
 
         if (status === ProjectStatus.COMPLETED) {
           await tx.osc.update({
