@@ -58,7 +58,6 @@ describe('DashboardService', () => {
         where?: { status?: string };
       }) => {
         if (!args?.where) return Promise.resolve(12);
-        if (args.where.status === 'IN_PROGRESS') return Promise.resolve(3);
         return Promise.resolve(9);
       }) as any);
       jest.spyOn(prisma.project, 'count').mockResolvedValue(3);
@@ -74,7 +73,6 @@ describe('DashboardService', () => {
 
       expect(result.totalOscs).toBe(12);
       expect(result.activeProjects).toBe(3);
-      expect(result.blockedOscs).toBe(3);
       expect(result.availableOscs).toBe(9);
       expect(result.signUp.enabled).toBe(false);
       expect(result.signUp.updatedAt).toEqual(mockAppConfig.updatedAt);

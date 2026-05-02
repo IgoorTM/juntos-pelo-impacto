@@ -10,26 +10,19 @@ export class DashboardService {
   async getDashboard(): Promise<DashboardResponseDto> {
     const currentSemester = getCurrentSemester();
 
-    const [
-      totalOscs,
-      activeProjects,
-      blockedOscs,
-      availableOscs,
-      rawProjects,
-      appConfig,
-    ] = await Promise.all([
-      this.prisma.osc.count(),
-      this.prisma.project.count({ where: { status: 'IN_PROGRESS' } }),
-      this.prisma.osc.count({ where: { status: 'IN_PROGRESS' } }),
-      this.prisma.osc.count({ where: { status: 'AVAILABLE' } }),
-      this.prisma.project.findMany({
-        where: { status: 'IN_PROGRESS' },
-        include: {
-          teams: { orderBy: { createdAt: 'desc' }, take: 1 },
-        },
-      }),
-      this.prisma.appConfig.findFirst(),
-    ]);
+    const [totalOscs, activeProjects, availableOscs, rawProjects, appConfig] =
+      await Promise.all([
+        this.prisma.osc.count(),
+        this.prisma.project.count({ where: { status: 'IN_PROGRESS' } }),
+        this.prisma.osc.count({ where: { status: 'AVAILABLE' } }),
+        this.prisma.project.findMany({
+          where: { status: 'IN_PROGRESS' },
+          include: {
+            teams: { orderBy: { createdAt: 'desc' }, take: 1 },
+          },
+        }),
+        this.prisma.appConfig.findFirst(),
+      ]);
 
     if (!appConfig) {
       throw new InternalServerErrorException('AppConfig not found');
@@ -42,7 +35,6 @@ export class DashboardService {
     return {
       totalOscs,
       activeProjects,
-      blockedOscs,
       availableOscs,
       pendingProjects,
       signUp: {
