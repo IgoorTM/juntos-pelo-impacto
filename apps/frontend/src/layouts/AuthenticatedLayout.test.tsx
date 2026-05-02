@@ -1,13 +1,29 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
+import { AuthContext } from '@/features/auth/AuthContext'
+import type { AuthContextValue } from '@/features/auth/AuthContext'
 import { AuthenticatedLayout } from './AuthenticatedLayout'
+import type { UserRole } from '@/lib/types'
 
-function renderLayout(role: 'COORDINATOR' | 'STUDENT') {
+function mockAuthValue(role: UserRole, signOut = vi.fn()): AuthContextValue {
+  return {
+    user: { id: '1', name: 'Test User', email: 'test@example.com', role },
+    accessToken: 'token',
+    isAuthenticated: true,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut,
+  }
+}
+
+function renderLayout(role: UserRole, signOut = vi.fn()) {
   return render(
-    <MemoryRouter initialEntries={['/dashboard']}>
-      <AuthenticatedLayout user={{ name: 'Test User', role }} onSignOut={() => {}} />
-    </MemoryRouter>
+    <AuthContext.Provider value={mockAuthValue(role, signOut)}>
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <AuthenticatedLayout />
+      </MemoryRouter>
+    </AuthContext.Provider>
   )
 }
 
@@ -40,15 +56,11 @@ describe('AuthenticatedLayout', () => {
     expect(screen.getByRole('link', { name: /projetos/i })).toBeInTheDocument()
   })
 
-  it('calls onSignOut when logout button is clicked', async () => {
-    const onSignOut = vi.fn()
-    render(
-      <MemoryRouter>
-        <AuthenticatedLayout user={{ name: 'Test User', role: 'COORDINATOR' }} onSignOut={onSignOut} />
-      </MemoryRouter>
-    )
+  it('calls signOut when logout button is clicked', async () => {
+    const signOut = vi.fn()
+    renderLayout('COORDINATOR', signOut)
     await userEvent.click(screen.getByRole('button', { name: /sair/i }))
-    expect(onSignOut).toHaveBeenCalledOnce()
+    expect(signOut).toHaveBeenCalledOnce()
   })
 
   it('toggles sidebar collapse when toggle button is clicked', async () => {

@@ -11,17 +11,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { useAuth } from '@/features/auth/AuthContext'
 import type { UserRole } from '@/lib/types'
-
-interface LayoutUser {
-  name: string
-  role: UserRole
-}
-
-interface AuthenticatedLayoutProps {
-  user: LayoutUser
-  onSignOut?: () => void
-}
 
 interface NavItem {
   label: string
@@ -65,7 +56,9 @@ function SidebarNav({ role, collapsed }: { role: UserRole; collapsed: boolean })
   )
 }
 
-export function AuthenticatedLayout({ user, onSignOut }: AuthenticatedLayoutProps) {
+export function AuthenticatedLayout() {
+  const { user, signOut } = useAuth()
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebar-collapsed') === 'true'
   })
@@ -73,6 +66,8 @@ export function AuthenticatedLayout({ user, onSignOut }: AuthenticatedLayoutProp
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', String(collapsed))
   }, [collapsed])
+
+  if (!user) return null
 
   return (
     <div className="flex h-screen flex-col">
@@ -92,7 +87,7 @@ export function AuthenticatedLayout({ user, onSignOut }: AuthenticatedLayoutProp
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-neutral-900">{user.name}</span>
-          <Button variant="ghost" size="icon" onClick={onSignOut} aria-label="Sair">
+          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sair">
             <LogOut size={16} />
           </Button>
         </div>
