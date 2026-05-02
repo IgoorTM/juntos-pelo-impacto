@@ -4,6 +4,9 @@ import {
   LayoutDashboard,
   Building2,
   FolderKanban,
+  Users,
+  FileText,
+  BarChart2,
   Menu,
   ChevronLeft,
   ChevronRight,
@@ -21,13 +24,6 @@ const ROLE_LABEL: Record<UserRole, string> = {
   STUDENT: 'Aluno',
 }
 
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  const first = parts[0]?.[0] ?? ''
-  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : ''
-  return (first + last).toUpperCase()
-}
-
 function formatSemester(raw: string): string {
   return raw.replace('-', '.')
 }
@@ -37,12 +33,16 @@ interface NavItem {
   path: string
   icon: React.ElementType
   roles: UserRole[] | null
+  disabled?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['COORDINATOR', 'ADMIN'] },
   { label: 'OSCs', path: '/oscs', icon: Building2, roles: ['COORDINATOR', 'ADMIN'] },
+  { label: 'Equipes', path: '/teams', icon: Users, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
   { label: 'Projetos', path: '/projects', icon: FolderKanban, roles: null },
+  { label: 'Formulários', path: '/forms', icon: FileText, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
+  { label: 'Relatórios', path: '/reports', icon: BarChart2, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
 ]
 
 function navItemsForRole(role: UserRole): NavItem[] {
@@ -55,22 +55,38 @@ function SidebarNav({ role, collapsed }: { role: UserRole; collapsed: boolean })
 
   return (
     <nav className="flex flex-col gap-1 px-3 py-2">
-      {items.map(({ label, path, icon: Icon }) => {
+      {items.map(({ label, path, icon: Icon, disabled }) => {
+        if (disabled) {
+          return (
+            <div
+              key={path}
+              className={[
+                'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium',
+                'cursor-not-allowed select-none opacity-40 text-sidebar-muted',
+                collapsed ? 'justify-center' : '',
+              ].join(' ')}
+              aria-disabled="true"
+            >
+              {collapsed ? <Icon size={18} aria-hidden /> : <span>{label}</span>}
+            </div>
+          )
+        }
+
         const isActive = location.pathname.startsWith(path)
         return (
           <Link
             key={path}
             to={path}
             className={[
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              'flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              collapsed ? 'justify-center' : '',
               isActive
                 ? 'bg-sidebar-active text-sidebar-active-fg'
                 : 'text-sidebar-muted hover:bg-white/10 hover:text-sidebar-foreground',
             ].join(' ')}
             aria-label={collapsed ? label : undefined}
           >
-            <Icon size={18} aria-hidden />
-            {!collapsed && <span>{label}</span>}
+            {collapsed ? <Icon size={18} aria-hidden /> : <span>{label}</span>}
           </Link>
         )
       })}
@@ -131,7 +147,7 @@ export function AuthenticatedLayout() {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Sheet>
               <SheetTrigger
                 render={<Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu" />}
@@ -143,26 +159,20 @@ export function AuthenticatedLayout() {
                 <SidebarNav role={user.role} collapsed={false} />
               </SheetContent>
             </Sheet>
-            <div className="hidden items-center gap-1.5 rounded-md border border-border bg-muted/50 px-3 py-1.5 sm:flex">
-              <span className="text-xs text-muted-foreground">Semestre em curso</span>
-              <span className="h-3 w-px bg-border" />
-              <span className="text-xs font-semibold tabular-nums text-foreground">
+            <div>
+              <p className="text-xs text-muted-foreground">Semestre em curso</p>
+              <p className="text-sm font-semibold tabular-nums">
                 {formatSemester(getCurrentSemester())}
-              </span>
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {getInitials(user.name)}
-              </div>
-              <div className="hidden flex-col sm:flex">
-                <span className="text-sm font-medium leading-tight">{user.name}</span>
-                <span className="text-xs leading-tight text-muted-foreground">
-                  {ROLE_LABEL[user.role]}
-                </span>
-              </div>
+            <div className="hidden flex-col items-end sm:flex">
+              <span className="text-sm font-medium leading-tight">{user.name}</span>
+              <span className="text-xs leading-tight text-muted-foreground">
+                {ROLE_LABEL[user.role]}
+              </span>
             </div>
             <Button variant="outline" size="sm" onClick={signOut} aria-label="Sair">
               <LogOut size={14} />
