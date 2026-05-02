@@ -250,12 +250,12 @@ describe('ProjectsService', () => {
       expect(oscUpdateSpy).not.toHaveBeenCalled();
     });
 
-    it('does not update OSC when project is set to INCOMPLETE', async () => {
-      const updated = { ...mockProjectFull, status: 'INCOMPLETE' as const };
+    it('does not update OSC when project is set to IN_PROGRESS', async () => {
+      const updated = { ...mockProjectFull, status: 'IN_PROGRESS' as const };
       jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
       const oscUpdateSpy = jest.spyOn(prisma.osc, 'update');
 
-      await service.updateStatus('proj-1', ProjectStatus.INCOMPLETE);
+      await service.updateStatus('proj-1', ProjectStatus.IN_PROGRESS);
 
       expect(oscUpdateSpy).not.toHaveBeenCalled();
     });
