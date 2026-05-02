@@ -68,6 +68,7 @@ function OscFormDialog({
 }: OscFormDialogProps) {
   const [form, setForm] = useState<OscFormState>(initial)
   const [validationError, setValidationError] = useState<string | null>(null)
+  const isCreate = !showStatus
 
   function set(field: keyof OscFormState) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -96,44 +97,64 @@ function OscFormDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isCreate && (
+            <div className="flex gap-2.5 rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-3 text-sm text-blue-700">
+              <span className="mt-0.5 shrink-0 text-blue-500">&#9432;</span>
+              <p>
+                O status inicial é sempre <strong>Disponível</strong>. Você pode ajustar depois se
+                necessário.
+              </p>
+            </div>
+          )}
+
           <Input
-            label="Nome"
+            label="Nome da OSC *"
+            placeholder="Instituto Exemplo"
             value={form.name}
             onChange={set('name')}
             disabled={saving}
             required
           />
-          <Input
-            label="Categoria (opcional)"
-            placeholder="Ex: Educação, Saúde, Meio Ambiente"
-            value={form.category}
-            onChange={set('category')}
-            disabled={saving}
-          />
-          <div className="space-y-1">
-            <label className="text-sm font-medium leading-none">Descrição</label>
-            <textarea
-              value={form.description}
-              onChange={set('description')}
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Área de atuação"
+              placeholder="Ex: Educação"
+              value={form.category}
+              onChange={set('category')}
               disabled={saving}
-              rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              required
+            />
+            <Input
+              label="E-mail de contato"
+              type="email"
+              placeholder="contato@osc.org"
+              value={form.email}
+              onChange={set('email')}
+              disabled={saving}
             />
           </div>
+
           <Input
-            label="E-mail (opcional)"
-            type="email"
-            value={form.email}
-            onChange={set('email')}
-            disabled={saving}
-          />
-          <Input
-            label="Telefone (opcional)"
+            label="Telefone"
+            placeholder="(11) 98888-7777"
             value={form.phone}
             onChange={set('phone')}
             disabled={saving}
           />
+
+          <div className="space-y-1">
+            <label className="text-sm font-medium leading-none">Descrição *</label>
+            <textarea
+              value={form.description}
+              onChange={set('description')}
+              disabled={saving}
+              rows={4}
+              placeholder="Missão, público atendido e área geográfica."
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            />
+          </div>
+
           {showStatus && (
             <div className="space-y-1">
               <label className="text-sm font-medium leading-none">Status</label>
@@ -149,15 +170,17 @@ function OscFormDialog({
               </select>
             </div>
           )}
+
           {(validationError || error) && (
             <p className="text-sm text-destructive">{validationError ?? error}</p>
           )}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? 'Salvando…' : isCreate ? 'Cadastrar OSC' : 'Salvar'}
             </Button>
           </DialogFooter>
         </form>
@@ -419,7 +442,7 @@ export function OscsPage() {
           setCreateError(null)
         }}
         onSave={handleCreate}
-        title="Nova OSC"
+        title="Cadastrar nova OSC"
         saving={creating}
         error={createError}
       />
