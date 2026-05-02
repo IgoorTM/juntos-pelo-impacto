@@ -14,7 +14,14 @@ export class OscsService {
 
   async findAll(role: string) {
     const where = role === 'STUDENT' ? { status: 'AVAILABLE' as const } : {};
-    return this.prisma.osc.findMany({ where });
+    const oscs = await this.prisma.osc.findMany({
+      where,
+      include: { _count: { select: { projects: true } } },
+    });
+    return oscs.map(({ _count, ...osc }) => ({
+      ...osc,
+      projectCount: _count.projects,
+    }));
   }
 
   async create(dto: CreateOscDto) {
@@ -39,7 +46,13 @@ export class OscsService {
 
   async update(id: string, dto: UpdateOscDto) {
     try {
-      return await this.prisma.osc.update({ where: { id }, data: dto });
+      const osc = await this.prisma.osc.update({
+        where: { id },
+        data: dto,
+        include: { _count: { select: { projects: true } } },
+      });
+      const { _count, ...rest } = osc;
+      return { ...rest, projectCount: _count.projects };
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') throw new NotFoundException('OSC not found');

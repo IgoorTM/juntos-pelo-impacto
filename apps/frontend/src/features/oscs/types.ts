@@ -7,6 +7,7 @@ export interface Osc {
   email: string | null
   phone: string | null
   status: OscStatus
+  projectCount: number
 }
 
 export interface CreateOscDto {

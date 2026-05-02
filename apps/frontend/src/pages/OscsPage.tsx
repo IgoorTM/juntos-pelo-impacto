@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Pencil } from 'lucide-react'
+import { Plus, Mail, Phone, ChevronDown } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -162,14 +162,19 @@ function OscCardSkeleton() {
     <Card>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </div>
-          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-5 w-24 rounded-full" />
         </div>
         <Skeleton className="mt-3 h-4 w-full" />
-        <Skeleton className="mt-1 h-4 w-3/4" />
+        <Skeleton className="mt-1.5 h-4 w-4/5" />
+        <div className="mt-3 space-y-1.5">
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+        <div className="mt-4 flex items-center justify-between border-t pt-3">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-8 w-32 rounded-md" />
+        </div>
       </CardContent>
     </Card>
   )
@@ -181,33 +186,46 @@ interface OscCardProps {
 }
 
 function OscCard({ osc, onEdit }: OscCardProps) {
+  const projectLabel =
+    osc.projectCount === 1 ? '1 projeto vinculado' : `${osc.projectCount} projetos vinculados`
+
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold">{osc.name}</p>
-            <Badge tone={OSC_STATUS_TONE[osc.status]} className="mt-1">
-              {OSC_STATUS_LABEL[osc.status]}
-            </Badge>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onEdit(osc)}
-            aria-label={`Editar ${osc.name}`}
-            className="shrink-0"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-semibold leading-snug">{osc.name}</p>
+          <Badge tone={OSC_STATUS_TONE[osc.status]} className="shrink-0">
+            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current" />
+            {OSC_STATUS_LABEL[osc.status]}
+          </Badge>
         </div>
-        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{osc.description}</p>
+
+        <p className="mt-3 text-sm text-muted-foreground">{osc.description}</p>
+
         {(osc.email || osc.phone) && (
-          <div className="mt-3 space-y-0.5 text-xs text-muted-foreground">
-            {osc.email && <p>{osc.email}</p>}
-            {osc.phone && <p>{osc.phone}</p>}
+          <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+            {osc.email && (
+              <div className="flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span>{osc.email}</span>
+              </div>
+            )}
+            {osc.phone && (
+              <div className="flex items-center gap-2">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
+                <span>{osc.phone}</span>
+              </div>
+            )}
           </div>
         )}
+
+        <div className="mt-4 flex items-center justify-between border-t pt-3">
+          <span className="text-sm text-muted-foreground">{projectLabel}</span>
+          <Button variant="outline" size="sm" onClick={() => onEdit(osc)}>
+            Alterar status
+            <ChevronDown className="ml-1 h-3.5 w-3.5" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -308,15 +326,15 @@ export function OscsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">OSCs</h1>
+        <h1 className="text-2xl font-bold">OSCs parceiras</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Organizações da Sociedade Civil parceiras do programa.
+          Cadastre organizações e gerencie sua disponibilidade ao longo dos semestres.
         </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Buscar OSC..."
+          placeholder="Buscar por nome..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
