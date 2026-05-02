@@ -92,7 +92,7 @@ function OscFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg p-6">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -175,7 +175,7 @@ function OscFormDialog({
             <p className="text-sm text-destructive">{validationError ?? error}</p>
           )}
 
-          <DialogFooter className="-mx-6 -mb-6 px-6 py-4">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
             </Button>
@@ -223,7 +223,7 @@ function OscCard({ osc, onEdit }: OscCardProps) {
 
   return (
     <Card>
-      <CardContent className="px-5 py-3">
+      <CardContent className="py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="font-semibold leading-snug">{osc.name}</p>
