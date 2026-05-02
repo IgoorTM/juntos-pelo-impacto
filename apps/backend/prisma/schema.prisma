@@ -83,6 +83,7 @@ model TeamMember {
 model Osc {
   id          String    @id @default(cuid())
   name        String    @unique
+  category    String?
   description String
   email       String?
   phone       String?

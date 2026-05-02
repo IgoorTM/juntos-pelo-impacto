@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Mail, Phone, ChevronDown } from 'lucide-react'
+import { Plus, Mail, Phone, Pencil } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +29,7 @@ const OSC_STATUS_TONE: Record<OscStatus, 'green' | 'blue' | 'red'> = {
 
 interface OscFormState {
   name: string
+  category: string
   description: string
   email: string
   phone: string
@@ -37,6 +38,7 @@ interface OscFormState {
 
 const EMPTY_FORM: OscFormState = {
   name: '',
+  category: '',
   description: '',
   email: '',
   phone: '',
@@ -100,6 +102,13 @@ function OscFormDialog({
             onChange={set('name')}
             disabled={saving}
             required
+          />
+          <Input
+            label="Categoria (opcional)"
+            placeholder="Ex: Educação, Saúde, Meio Ambiente"
+            value={form.category}
+            onChange={set('category')}
+            disabled={saving}
           />
           <div className="space-y-1">
             <label className="text-sm font-medium leading-none">Descrição</label>
@@ -191,19 +200,31 @@ function OscCard({ osc, onEdit }: OscCardProps) {
 
   return (
     <Card>
-      <CardContent className="p-5">
+      <CardContent className="px-5 py-3">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-semibold leading-snug">{osc.name}</p>
-          <Badge tone={OSC_STATUS_TONE[osc.status]} className="shrink-0">
-            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current" />
-            {OSC_STATUS_LABEL[osc.status]}
-          </Badge>
+          <div className="min-w-0">
+            <p className="font-semibold leading-snug">{osc.name}</p>
+            {osc.category && (
+              <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {osc.category}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onEdit(osc)}
+            aria-label={`Editar ${osc.name}`}
+            className="shrink-0"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
         </div>
 
-        <p className="mt-3 text-sm text-muted-foreground">{osc.description}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{osc.description}</p>
 
         {(osc.email || osc.phone) && (
-          <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
             {osc.email && (
               <div className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 shrink-0" />
@@ -219,12 +240,12 @@ function OscCard({ osc, onEdit }: OscCardProps) {
           </div>
         )}
 
-        <div className="mt-4 flex items-center justify-between border-t pt-3">
+        <div className="mt-3 flex items-center justify-between border-t pt-2.5">
+          <Badge tone={OSC_STATUS_TONE[osc.status]}>
+            <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current" />
+            {OSC_STATUS_LABEL[osc.status]}
+          </Badge>
           <span className="text-sm text-muted-foreground">{projectLabel}</span>
-          <Button variant="outline" size="sm" onClick={() => onEdit(osc)}>
-            Alterar status
-            <ChevronDown className="ml-1 h-3.5 w-3.5" />
-          </Button>
         </div>
       </CardContent>
     </Card>
@@ -266,6 +287,7 @@ export function OscsPage() {
     setCreateError(null)
     const dto: CreateOscDto = {
       name: form.name.trim(),
+      ...(form.category.trim() && { category: form.category.trim() }),
       description: form.description.trim(),
       ...(form.email.trim() && { email: form.email.trim() }),
       ...(form.phone.trim() && { phone: form.phone.trim() }),
@@ -290,6 +312,7 @@ export function OscsPage() {
     setEditError(null)
     const dto: UpdateOscDto = {
       name: form.name.trim(),
+      ...(form.category.trim() ? { category: form.category.trim() } : { category: undefined }),
       description: form.description.trim(),
       status: form.status,
       ...(form.email.trim() ? { email: form.email.trim() } : { email: undefined }),
@@ -316,6 +339,7 @@ export function OscsPage() {
   const editInitial: OscFormState | undefined = editTarget
     ? {
         name: editTarget.name,
+        category: editTarget.category ?? '',
         description: editTarget.description,
         email: editTarget.email ?? '',
         phone: editTarget.phone ?? '',

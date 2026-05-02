@@ -3,6 +3,7 @@ export type OscStatus = 'AVAILABLE' | 'IN_PROGRESS' | 'BLOCKED'
 export interface Osc {
   id: string
   name: string
+  category: string | null
   description: string
   email: string | null
   phone: string | null
@@ -12,6 +13,7 @@ export interface Osc {
 
 export interface CreateOscDto {
   name: string
+  category?: string
   description: string
   email?: string
   phone?: string
@@ -19,6 +21,7 @@ export interface CreateOscDto {
 
 export interface UpdateOscDto {
   name?: string
+  category?: string
   description?: string
   email?: string
   phone?: string
