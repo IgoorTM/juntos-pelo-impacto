@@ -219,22 +219,29 @@ describe('ProjectsService', () => {
 
     it('updates project status and returns the mapped project', async () => {
       const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
-      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
-      jest.spyOn(prisma.osc, 'update').mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      jest
+        .spyOn(prisma.osc, 'update')
+        .mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
 
-      const result = await service.updateStatus('proj-1', ProjectStatus.COMPLETED);
+      const result = await service.updateStatus(
+        'proj-1',
+        ProjectStatus.COMPLETED,
+      );
 
       expect(result.status).toBe('COMPLETED');
     });
 
     it('updates OSC to AVAILABLE when project is set to COMPLETED', async () => {
       const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
-      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
-      jest.spyOn(prisma.osc, 'update').mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      const oscUpdateSpy = jest
+        .spyOn(prisma.osc, 'update')
+        .mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
 
       await service.updateStatus('proj-1', ProjectStatus.COMPLETED);
 
-      expect(prisma.osc.update).toHaveBeenCalledWith({
+      expect(oscUpdateSpy).toHaveBeenCalledWith({
         where: { id: 'osc-1' },
         data: { status: 'AVAILABLE' },
       });
@@ -242,7 +249,7 @@ describe('ProjectsService', () => {
 
     it('does not update OSC when project is set to ABANDONED', async () => {
       const updated = { ...mockProjectFull, status: 'ABANDONED' as const };
-      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
       const oscUpdateSpy = jest.spyOn(prisma.osc, 'update');
 
       await service.updateStatus('proj-1', ProjectStatus.ABANDONED);
@@ -252,7 +259,7 @@ describe('ProjectsService', () => {
 
     it('does not update OSC when project is set to IN_PROGRESS', async () => {
       const updated = { ...mockProjectFull, status: 'IN_PROGRESS' as const };
-      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated as any);
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
       const oscUpdateSpy = jest.spyOn(prisma.osc, 'update');
 
       await service.updateStatus('proj-1', ProjectStatus.IN_PROGRESS);
