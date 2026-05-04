@@ -283,6 +283,7 @@ export function OscsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [retryTick, setRetryTick] = useState(0)
 
@@ -307,6 +308,15 @@ export function OscsPage() {
   // Reset and fetch page 1 whenever filters change
   useEffect(() => {
     let cancelled = false
+    // Reset UI state synchronously so skeleton shows immediately instead of
+    // displaying the empty-state text for one frame while the new fetch is in flight.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true)
+    setError(null)
+    setLoadMoreError(null)
+    setOscs([])
+    setPage(1)
+    setTotalPages(1)
     fetchOscs({
       page: 1,
       limit: PAGE_LIMIT,
@@ -316,23 +326,17 @@ export function OscsPage() {
       .then((resp) => {
         if (cancelled) return
         setOscs(resp.data)
-        setPage(1)
         setTotalPages(resp.totalPages)
-        setError(null)
-        setLoading(false)
       })
       .catch(() => {
         if (cancelled) return
         setError('Não foi possível carregar as OSCs.')
-        setLoading(false)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
-      setOscs([])
-      setPage(1)
-      setTotalPages(1)
-      setLoading(true)
-      setError(null)
     }
   }, [debouncedSearch, statusFilter, retryTick])
 
@@ -344,6 +348,7 @@ export function OscsPage() {
   async function handleLoadMore() {
     const nextPage = page + 1
     setLoadingMore(true)
+    setLoadMoreError(null)
     try {
       const resp = await fetchOscs({
         page: nextPage,
@@ -355,7 +360,7 @@ export function OscsPage() {
       setPage(nextPage)
       setTotalPages(resp.totalPages)
     } catch {
-      // silent: user can retry via the main error state if needed
+      setLoadMoreError('Não foi possível carregar mais OSCs. Tente novamente.')
     } finally {
       setLoadingMore(false)
     }
@@ -486,10 +491,13 @@ export function OscsPage() {
               </div>
 
               {page < totalPages && (
-                <div className="flex justify-center pt-2">
+                <div className="flex flex-col items-center gap-2 pt-2">
                   <Button variant="outline" onClick={handleLoadMore} disabled={loadingMore}>
                     {loadingMore ? 'Carregando…' : 'Carregar mais'}
                   </Button>
+                  {loadMoreError && (
+                    <p className="text-sm text-destructive">{loadMoreError}</p>
+                  )}
                 </div>
               )}
             </>
