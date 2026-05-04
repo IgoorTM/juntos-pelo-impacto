@@ -17,7 +17,6 @@
     "test:e2e": "TEST_TYPE=e2e jest",
     "create-admin": "node scripts/create-admin.mjs",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "postinstall": "prisma generate"
   },
