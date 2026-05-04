@@ -51,7 +51,11 @@ describe('Auth E2E', () => {
 
     await app.init();
 
-    // Cleanup database before tests
+    // Cleanup in FK-safe order: dependents first
+    await prisma.teamMember.deleteMany();
+    await prisma.team.deleteMany();
+    await prisma.project.deleteMany();
+    await prisma.osc.deleteMany();
     await prisma.user.deleteMany();
     await prisma.appConfig.deleteMany();
 
