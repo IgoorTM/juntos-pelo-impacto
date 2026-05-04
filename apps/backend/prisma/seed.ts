@@ -356,7 +356,29 @@ async function seedProjects(emailToId: Map<string, string>): Promise<void> {
   console.log(`Upserted ${PROJECT_SEED_DATA.length} projects with teams and members`);
 }
 
+async function seedAdmin(): Promise<void> {
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@juntos.com';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'admin123';
+  const adminName = process.env.SEED_ADMIN_NAME || 'Admin User';
+
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: { name: adminName, passwordHash, role: UserRole.ADMIN },
+    create: { name: adminName, email: adminEmail, passwordHash, role: UserRole.ADMIN },
+  });
+  console.log(`Upserted admin: ${adminEmail}`);
+
+  await prisma.appConfig.upsert({
+    where: { id: 1 },
+    update: { signUpEnabled: true },
+    create: { id: 1, signUpEnabled: true },
+  });
+  console.log('AppConfig initialized (signUpEnabled = true)');
+}
+
 async function main() {
+  await seedAdmin();
   await seedOscs();
   const emailToId = await seedStudents();
   await seedProjects(emailToId);
