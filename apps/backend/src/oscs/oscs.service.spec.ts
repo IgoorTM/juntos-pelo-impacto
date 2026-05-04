@@ -112,7 +112,10 @@ describe('OscsService', () => {
     it('calculates skip correctly for page 2', async () => {
       jest.spyOn(prisma.osc, 'count').mockResolvedValue(25);
 
-      const result = await service.findAll('COORDINATOR', { page: 2, limit: 10 });
+      const result = await service.findAll('COORDINATOR', {
+        page: 2,
+        limit: 10,
+      });
 
       expect(prisma.osc.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 10, take: 10 }),

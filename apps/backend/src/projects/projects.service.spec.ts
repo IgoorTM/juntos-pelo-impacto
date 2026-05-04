@@ -178,7 +178,9 @@ describe('ProjectsService', () => {
 
   describe('findAll', () => {
     beforeEach(() => {
-      jest.spyOn(prisma.project, 'findMany').mockResolvedValue([mockProjectFull]);
+      jest
+        .spyOn(prisma.project, 'findMany')
+        .mockResolvedValue([mockProjectFull]);
       jest.spyOn(prisma.project, 'count').mockResolvedValue(1);
     });
 
@@ -191,7 +193,10 @@ describe('ProjectsService', () => {
       expect(prisma.project.count).toHaveBeenCalledWith({ where: {} });
       expect(result).toEqual({
         data: expect.arrayContaining([
-          expect.objectContaining({ id: 'proj-1', osc: { id: 'osc-1', name: 'OSC Test' } }),
+          expect.objectContaining({
+            id: 'proj-1',
+            osc: { id: 'osc-1', name: 'OSC Test' },
+          }),
         ]),
         total: 1,
         page: 1,
@@ -203,24 +208,30 @@ describe('ProjectsService', () => {
     it('applies project name search filter', async () => {
       await service.findAll({ search: 'Solidario' });
 
-      const expectedWhere = { name: { contains: 'Solidario', mode: 'insensitive' } };
+      const expectedWhere = {
+        name: { contains: 'Solidario', mode: 'insensitive' },
+      };
       expect(prisma.project.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
-      expect(prisma.project.count).toHaveBeenCalledWith({ where: expectedWhere });
+      expect(prisma.project.count).toHaveBeenCalledWith({
+        where: expectedWhere,
+      });
     });
 
     it('applies OSC name search filter', async () => {
       await service.findAll({ oscSearch: 'Verde' });
 
-      const expectedWhere = { osc: { name: { contains: 'Verde', mode: 'insensitive' } } };
+      const expectedWhere = {
+        osc: { name: { contains: 'Verde', mode: 'insensitive' } },
+      };
       expect(prisma.project.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
     });
 
     it('applies status filter', async () => {
-      await service.findAll({ status: 'COMPLETED' as ProjectStatus });
+      await service.findAll({ status: 'COMPLETED' });
 
       expect(prisma.project.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { status: 'COMPLETED' } }),
@@ -231,7 +242,7 @@ describe('ProjectsService', () => {
       await service.findAll({
         search: 'Proj',
         oscSearch: 'OSC',
-        status: 'IN_PROGRESS' as ProjectStatus,
+        status: 'IN_PROGRESS',
       });
 
       expect(prisma.project.findMany).toHaveBeenCalledWith(

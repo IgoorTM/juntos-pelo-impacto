@@ -68,7 +68,9 @@ export class ProjectsService {
 
     const where: Prisma.ProjectWhereInput = {
       ...(search && { name: { contains: search, mode: 'insensitive' } }),
-      ...(oscSearch && { osc: { name: { contains: oscSearch, mode: 'insensitive' } } }),
+      ...(oscSearch && {
+        osc: { name: { contains: oscSearch, mode: 'insensitive' } },
+      }),
       ...(status && { status }),
     };
 

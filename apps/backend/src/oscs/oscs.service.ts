@@ -41,7 +41,10 @@ export class OscsService {
     ]);
 
     return {
-      data: oscs.map(({ _count, ...osc }) => ({ ...osc, projectCount: _count.projects })),
+      data: oscs.map(({ _count, ...osc }) => ({
+        ...osc,
+        projectCount: _count.projects,
+      })),
       total,
       page,
       limit,
