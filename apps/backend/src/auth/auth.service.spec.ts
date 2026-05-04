@@ -40,7 +40,7 @@ describe('AuthService', () => {
             },
             appConfig: {
               findFirst: jest.fn(),
-              update: jest.fn(),
+              upsert: jest.fn(),
             },
           },
         },
@@ -195,15 +195,16 @@ describe('AuthService', () => {
 
   describe('toggleSignUp', () => {
     it('should toggle signUpEnabled from true to false', async () => {
+      const now = new Date();
       jest.spyOn(prismaService.appConfig, 'findFirst').mockResolvedValue({
         id: 1,
         signUpEnabled: true,
-        updatedAt: new Date(),
+        updatedAt: now,
       });
-      jest.spyOn(prismaService.appConfig, 'update').mockResolvedValue({
+      jest.spyOn(prismaService.appConfig, 'upsert').mockResolvedValue({
         id: 1,
         signUpEnabled: false,
-        updatedAt: new Date(),
+        updatedAt: now,
       });
 
       const result = await service.toggleSignUp();
@@ -213,15 +214,16 @@ describe('AuthService', () => {
     });
 
     it('should toggle signUpEnabled from false to true', async () => {
+      const now = new Date();
       jest.spyOn(prismaService.appConfig, 'findFirst').mockResolvedValue({
         id: 1,
         signUpEnabled: false,
-        updatedAt: new Date(),
+        updatedAt: now,
       });
-      jest.spyOn(prismaService.appConfig, 'update').mockResolvedValue({
+      jest.spyOn(prismaService.appConfig, 'upsert').mockResolvedValue({
         id: 1,
         signUpEnabled: true,
-        updatedAt: new Date(),
+        updatedAt: now,
       });
 
       const result = await service.toggleSignUp();

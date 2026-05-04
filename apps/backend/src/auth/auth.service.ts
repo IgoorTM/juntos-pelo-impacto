@@ -95,15 +95,10 @@ export class AuthService {
   async toggleSignUp() {
     const appConfig = await this.prisma.appConfig.findFirst();
 
-    if (!appConfig) {
-      throw new Error('AppConfig not found');
-    }
-
-    const updated = await this.prisma.appConfig.update({
-      where: { id: appConfig.id },
-      data: {
-        signUpEnabled: !appConfig.signUpEnabled,
-      },
+    const updated = await this.prisma.appConfig.upsert({
+      where: { id: appConfig?.id ?? 1 },
+      create: { signUpEnabled: true },
+      update: { signUpEnabled: !appConfig?.signUpEnabled },
     });
 
     return {
