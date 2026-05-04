@@ -275,13 +275,19 @@ function OscCard({ osc, onEdit }: OscCardProps) {
   )
 }
 
+const PAGE_LIMIT = 10
+
 export function OscsPage() {
   const [oscs, setOscs] = useState<Osc[]>([])
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
+  const [retryTick, setRetryTick] = useState(0)
 
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<OscStatus | ''>('')
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -292,17 +298,67 @@ export function OscsPage() {
   const [editError, setEditError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
 
+  // Debounce search input 300ms
   useEffect(() => {
-    fetchOscs()
-      .then(setOscs)
-      .catch(() => setError('Não foi possível carregar as OSCs.'))
-      .finally(() => setLoading(false))
-  }, [retryCount])
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Reset and fetch page 1 whenever filters change
+  useEffect(() => {
+    let cancelled = false
+    fetchOscs({
+      page: 1,
+      limit: PAGE_LIMIT,
+      ...(debouncedSearch && { search: debouncedSearch }),
+      ...(statusFilter && { status: statusFilter }),
+    })
+      .then((resp) => {
+        if (cancelled) return
+        setOscs(resp.data)
+        setPage(1)
+        setTotalPages(resp.totalPages)
+        setError(null)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setError('Não foi possível carregar as OSCs.')
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
+      setOscs([])
+      setPage(1)
+      setTotalPages(1)
+      setLoading(true)
+      setError(null)
+    }
+  }, [debouncedSearch, statusFilter, retryTick])
 
   function handleRetry() {
-    setLoading(true)
     setError(null)
-    setRetryCount((c) => c + 1)
+    setRetryTick((t) => t + 1)
+  }
+
+  async function handleLoadMore() {
+    const nextPage = page + 1
+    setLoadingMore(true)
+    try {
+      const resp = await fetchOscs({
+        page: nextPage,
+        limit: PAGE_LIMIT,
+        ...(debouncedSearch && { search: debouncedSearch }),
+        ...(statusFilter && { status: statusFilter }),
+      })
+      setOscs((prev) => [...prev, ...resp.data])
+      setPage(nextPage)
+      setTotalPages(resp.totalPages)
+    } catch {
+      // silent: user can retry via the main error state if needed
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   async function handleCreate(form: OscFormState) {
@@ -354,10 +410,6 @@ export function OscsPage() {
       setEditing(false)
     }
   }
-
-  const filteredOscs = oscs
-    .filter((o) => !search || o.name.toLowerCase().includes(search.toLowerCase()))
-    .filter((o) => !statusFilter || o.status === statusFilter)
 
   const editInitial: OscFormState | undefined = editTarget
     ? {
@@ -419,21 +471,32 @@ export function OscsPage() {
                 <OscCardSkeleton key={i} />
               ))}
             </div>
-          ) : filteredOscs.length === 0 ? (
+          ) : oscs.length === 0 ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
-              {oscs.length === 0 ? 'Nenhuma OSC cadastrada.' : 'Nenhuma OSC encontrada para os filtros aplicados.'}
+              {!debouncedSearch && !statusFilter
+                ? 'Nenhuma OSC cadastrada.'
+                : 'Nenhuma OSC encontrada para os filtros aplicados.'}
             </p>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {filteredOscs.map((osc) => (
-                <OscCard key={osc.id} osc={osc} onEdit={setEditTarget} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {oscs.map((osc) => (
+                  <OscCard key={osc.id} osc={osc} onEdit={setEditTarget} />
+                ))}
+              </div>
+
+              {page < totalPages && (
+                <div className="flex justify-center pt-2">
+                  <Button variant="outline" onClick={handleLoadMore} disabled={loadingMore}>
+                    {loadingMore ? 'Carregando…' : 'Carregar mais'}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
 
-      {/* key resets internal form state each time the dialog opens */}
       <OscFormDialog
         key={createOpen ? 'create-open' : 'create-closed'}
         open={createOpen}
