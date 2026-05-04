@@ -3,13 +3,16 @@ import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { fileURLToPath } from 'node:url';
+
+const rootDir = fileURLToPath(new URL('.', import.meta.url));
 
 export default tseslint.config(
   {
     ignores: ['eslint.config.mjs', 'prisma/seed.ts'],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
     languageOptions: {
@@ -20,7 +23,7 @@ export default tseslint.config(
       sourceType: 'commonjs',
       parserOptions: {
         project: ['./tsconfig.json', './tsconfig.spec.json'],
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: rootDir,
       },
     },
   },
