@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import { config } from 'dotenv';
 import path from 'path';
 
-export default async function globalSetup() {
+export default function globalSetup() {
   config({ path: path.resolve(__dirname, '../.env.test') });
 
   const dbUrl = process.env.DATABASE_URL as string;
