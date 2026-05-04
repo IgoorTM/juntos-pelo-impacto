@@ -347,7 +347,7 @@ export function CoordinatorProjectsView() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="font-serif text-4xl font-bold text-foreground">Projetos</h1>
+        <h1 className="text-2xl font-bold">Projetos</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Acompanhe projetos por semestre, defina status finais e resolva pendências do período
           anterior.
