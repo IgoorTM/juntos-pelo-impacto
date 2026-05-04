@@ -53,7 +53,8 @@ export function SignInPage() {
     setLoading(true)
     try {
       const user = await signIn(form.email, form.password)
-      navigate(user.role === 'COORDINATOR' ? '/dashboard' : '/projects', { replace: true })
+      const home = user.role === 'COORDINATOR' || user.role === 'ADMIN' ? '/dashboard' : '/projects'
+      navigate(home, { replace: true })
     } catch (err) {
       const apiErr = err as ApiError
       setApiError(apiErr.status === 401 ? 'E-mail ou senha incorretos' : 'Erro inesperado. Tente novamente.')
@@ -67,7 +68,7 @@ export function SignInPage() {
       <div className="w-full max-w-sm">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center text-lg font-semibold">
+            <CardTitle className="text-center text-xl font-bold">
               Projeto Juntos pelo Impacto
             </CardTitle>
           </CardHeader>

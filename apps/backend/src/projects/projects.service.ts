@@ -9,11 +9,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TeamsService } from '../teams/teams.service';
 import { getCurrentSemester } from '../common/get-current-semester';
 import { CreateProjectDto } from './dtos/create-project.dto';
+import { ListProjectsQueryDto } from './dtos/list-projects-query.dto';
 
 interface ProjectRow {
   id: string;
   name: string;
   status: ProjectStatus;
+  oscId: string;
   osc: { id: string; name: string };
   teams: Array<{
     id: string;
@@ -60,11 +62,35 @@ export class ProjectsService {
     };
   }
 
-  async findAll() {
-    const projects = await this.prisma.project.findMany({
-      include: this.projectInclude,
-    });
-    return projects.map((p) => this.mapProject(p as unknown as ProjectRow));
+  async findAll(query: ListProjectsQueryDto) {
+    const { page = 1, limit = 10, search, oscSearch, status } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProjectWhereInput = {
+      ...(search && { name: { contains: search, mode: 'insensitive' } }),
+      ...(oscSearch && {
+        osc: { name: { contains: oscSearch, mode: 'insensitive' } },
+      }),
+      ...(status && { status }),
+    };
+
+    const [projects, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        include: this.projectInclude,
+        skip,
+        take: limit,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return {
+      data: projects.map((p) => this.mapProject(p as unknown as ProjectRow)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string) {
@@ -78,19 +104,28 @@ export class ProjectsService {
 
   async updateStatus(id: string, status: ProjectStatus) {
     try {
-      const project = await this.prisma.project.update({
-        where: { id },
-        data: { status },
-        include: this.projectInclude,
+      return await this.prisma.$transaction(async (tx) => {
+        const project = (await tx.project.update({
+          where: { id },
+          data: { status },
+          include: this.projectInclude,
+        })) as unknown as ProjectRow;
+
+        if (status === ProjectStatus.COMPLETED) {
+          await tx.osc.update({
+            where: { id: project.oscId },
+            data: { status: 'AVAILABLE' },
+          });
+        }
+
+        return this.mapProject(project);
       });
-      return this.mapProject(project);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025')
           throw new NotFoundException('Project not found');
-        if (e.code === 'P2002') {
+        if (e.code === 'P2002')
           throw new ConflictException('Unique constraint violation');
-        }
       }
       throw e;
     }

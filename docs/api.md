@@ -91,24 +91,40 @@ Response `200`:
 ## OSCs
 
 ### GET /oscs
-Lista OSCs.
+Lista OSCs com filtros e paginação.
 
 **Autenticado.**
-- `COORDINATOR`: retorna todas as OSCs (qualquer status).
-- `STUDENT`: retorna apenas OSCs com `status = AVAILABLE`.
+- `COORDINATOR`: retorna todas as OSCs (qualquer status). Parâmetro `status` é aplicado se presente.
+- `STUDENT`: retorna apenas OSCs com `status = AVAILABLE`. O parâmetro `status` é ignorado.
+
+Query params:
+
+| Param | Tipo | Default | Validação |
+|---|---|---|---|
+| `page` | integer | 1 | mínimo 1 |
+| `limit` | integer | 10 | mínimo 1, máximo 50 |
+| `search` | string | — | opcional, busca parcial em `name` (case-insensitive) |
+| `status` | enum | — | opcional, `AVAILABLE \| IN_PROGRESS \| BLOCKED` |
 
 Response `200`:
 ```json
-[
-  {
-    "id": "string",
-    "name": "string",
-    "description": "string",
-    "email": "string | null",
-    "phone": "string | null",
-    "status": "AVAILABLE | IN_PROGRESS | BLOCKED"
-  }
-]
+{
+  "data": [
+    {
+      "id": "string",
+      "name": "string",
+      "description": "string",
+      "email": "string | null",
+      "phone": "string | null",
+      "status": "AVAILABLE | IN_PROGRESS | BLOCKED",
+      "projectCount": 0
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 5
+}
 ```
 
 ---
@@ -157,28 +173,44 @@ Sem restrição de transição de status — o coordenador define o status livre
 ## Projects
 
 ### GET /projects
-Lista projetos.
+Lista projetos com filtros e paginação.
 
 **COORDINATOR.** Retorna todos os projetos.
 
+Query params:
+
+| Param | Tipo | Default | Validação |
+|---|---|---|---|
+| `page` | integer | 1 | mínimo 1 |
+| `limit` | integer | 10 | mínimo 1, máximo 50 |
+| `search` | string | — | opcional, busca parcial em `project.name` (case-insensitive) |
+| `oscSearch` | string | — | opcional, busca parcial em `osc.name` (case-insensitive) |
+| `status` | enum | — | opcional, `IN_PROGRESS \| COMPLETED \| ABANDONED` |
+
 Response `200`:
 ```json
-[
-  {
-    "id": "string",
-    "name": "string",
-    "status": "IN_PROGRESS | COMPLETED | ABANDONED",
-    "osc": { "id": "string", "name": "string" },
-    "teams": [
-      {
-        "id": "string",
-        "semester": "string",
-        "code": "string",
-        "members": [{ "id": "string", "name": "string" }]
-      }
-    ]
-  }
-]
+{
+  "data": [
+    {
+      "id": "string",
+      "name": "string",
+      "status": "IN_PROGRESS | COMPLETED | ABANDONED",
+      "osc": { "id": "string", "name": "string" },
+      "teams": [
+        {
+          "id": "string",
+          "semester": "string",
+          "code": "string",
+          "members": [{ "id": "string", "name": "string" }]
+        }
+      ]
+    }
+  ],
+  "total": 18,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 2
+}
 ```
 
 ---

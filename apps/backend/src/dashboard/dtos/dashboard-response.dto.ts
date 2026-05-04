@@ -22,12 +22,6 @@ export class DashboardResponseDto {
   @ApiProperty({ example: 3, description: 'Projects with status IN_PROGRESS' })
   activeProjects!: number;
 
-  @ApiProperty({
-    example: 3,
-    description: 'OSCs with status IN_PROGRESS (in use by an active project)',
-  })
-  blockedOscs!: number;
-
   @ApiProperty({ example: 9, description: 'OSCs with status AVAILABLE' })
   availableOscs!: number;
 

@@ -10,6 +10,15 @@ export class CreateOscDto {
   @IsNotEmpty()
   name: string;
 
+  @ApiPropertyOptional({
+    example: 'Educação',
+    description: 'Area of activity / category of the OSC',
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  category?: string;
+
   @ApiProperty({
     example: 'Organization focused on community development and education',
     description: 'Detailed description of the OSC',

@@ -14,6 +14,7 @@ describe('ProjectsService', () => {
     id: 'osc-1',
     name: 'OSC Test',
     description: 'Desc',
+    category: null as string | null,
     email: null,
     phone: null,
     status: 'AVAILABLE' as const,
@@ -62,6 +63,7 @@ describe('ProjectsService', () => {
             project: {
               create: jest.fn(),
               findMany: jest.fn(),
+              count: jest.fn(),
               findUnique: jest.fn(),
               update: jest.fn(),
             },
@@ -176,18 +178,95 @@ describe('ProjectsService', () => {
   };
 
   describe('findAll', () => {
-    it('returns all projects with osc, teams and members', async () => {
-      jest
+    let findManySpy: jest.SpyInstance;
+    let countSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      findManySpy = jest
         .spyOn(prisma.project, 'findMany')
         .mockResolvedValue([mockProjectFull]);
+      countSpy = jest.spyOn(prisma.project, 'count').mockResolvedValue(1);
+    });
 
-      const result = await service.findAll();
+    it('returns paginated envelope with no filters', async () => {
+      const result = await service.findAll({});
 
-      expect(result).toHaveLength(1);
-      expect(result[0].osc).toEqual({ id: 'osc-1', name: 'OSC Test' });
-      expect(result[0].teams[0].members).toEqual([
-        { id: 'user-1', name: 'Aluno Test' },
-      ]);
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {}, skip: 0, take: 10 }),
+      );
+      expect(countSpy).toHaveBeenCalledWith({ where: {} });
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(1);
+      expect(result.data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'proj-1',
+            osc: { id: 'osc-1', name: 'OSC Test' },
+          }),
+        ]),
+      );
+    });
+
+    it('applies project name search filter', async () => {
+      await service.findAll({ search: 'Solidario' });
+
+      const expectedWhere = {
+        name: { contains: 'Solidario', mode: 'insensitive' },
+      };
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+      expect(countSpy).toHaveBeenCalledWith({ where: expectedWhere });
+    });
+
+    it('applies OSC name search filter', async () => {
+      await service.findAll({ oscSearch: 'Verde' });
+
+      const expectedWhere = {
+        osc: { name: { contains: 'Verde', mode: 'insensitive' } },
+      };
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+    });
+
+    it('applies status filter', async () => {
+      await service.findAll({ status: ProjectStatus.COMPLETED });
+
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { status: 'COMPLETED' } }),
+      );
+    });
+
+    it('combines all three filters with AND', async () => {
+      await service.findAll({
+        search: 'Proj',
+        oscSearch: 'OSC',
+        status: ProjectStatus.IN_PROGRESS,
+      });
+
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            name: { contains: 'Proj', mode: 'insensitive' },
+            osc: { name: { contains: 'OSC', mode: 'insensitive' } },
+            status: 'IN_PROGRESS',
+          },
+        }),
+      );
+    });
+
+    it('calculates skip for page 3, limit 5', async () => {
+      countSpy.mockResolvedValue(20);
+
+      const result = await service.findAll({ page: 3, limit: 5 });
+
+      expect(findManySpy).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 10, take: 5 }),
+      );
+      expect(result.totalPages).toBe(4);
     });
   });
 
@@ -211,9 +290,18 @@ describe('ProjectsService', () => {
   });
 
   describe('updateStatus', () => {
-    it('updates and returns the project', async () => {
+    beforeEach(() => {
+      (prisma.$transaction as jest.Mock).mockImplementation(
+        (fn: (tx: PrismaService) => Promise<unknown>) => fn(prisma),
+      );
+    });
+
+    it('updates project status and returns the mapped project', async () => {
       const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
       jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      jest
+        .spyOn(prisma.osc, 'update')
+        .mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
 
       const result = await service.updateStatus(
         'proj-1',
@@ -221,6 +309,41 @@ describe('ProjectsService', () => {
       );
 
       expect(result.status).toBe('COMPLETED');
+    });
+
+    it('updates OSC to AVAILABLE when project is set to COMPLETED', async () => {
+      const updated = { ...mockProjectFull, status: 'COMPLETED' as const };
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      const oscUpdateSpy = jest
+        .spyOn(prisma.osc, 'update')
+        .mockResolvedValue({ ...mockOsc, status: 'AVAILABLE' as const });
+
+      await service.updateStatus('proj-1', ProjectStatus.COMPLETED);
+
+      expect(oscUpdateSpy).toHaveBeenCalledWith({
+        where: { id: 'osc-1' },
+        data: { status: 'AVAILABLE' },
+      });
+    });
+
+    it('does not update OSC when project is set to ABANDONED', async () => {
+      const updated = { ...mockProjectFull, status: 'ABANDONED' as const };
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      const oscUpdateSpy = jest.spyOn(prisma.osc, 'update');
+
+      await service.updateStatus('proj-1', ProjectStatus.ABANDONED);
+
+      expect(oscUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not update OSC when project is set to IN_PROGRESS', async () => {
+      const updated = { ...mockProjectFull, status: 'IN_PROGRESS' as const };
+      jest.spyOn(prisma.project, 'update').mockResolvedValue(updated);
+      const oscUpdateSpy = jest.spyOn(prisma.osc, 'update');
+
+      await service.updateStatus('proj-1', ProjectStatus.IN_PROGRESS);
+
+      expect(oscUpdateSpy).not.toHaveBeenCalled();
     });
 
     it('throws NotFoundException when project does not exist', async () => {

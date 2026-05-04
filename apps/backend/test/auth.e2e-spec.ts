@@ -51,7 +51,6 @@ describe('Auth E2E', () => {
 
     await app.init();
 
-    // Cleanup database before tests
     await prisma.user.deleteMany();
     await prisma.appConfig.deleteMany();
 
