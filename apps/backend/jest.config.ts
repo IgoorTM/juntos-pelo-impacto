@@ -16,6 +16,10 @@ const config: Config = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
+  ...(testType === 'e2e' && {
+    globalSetup: '<rootDir>/test/global-setup.ts',
+    setupFiles: ['<rootDir>/test/setup-env.ts'],
+  }),
 };
 
 export default config;
