@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import {
@@ -17,6 +18,7 @@ import { Request as ExpressRequest } from 'express';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dtos/create-project.dto';
+import { ListProjectsQueryDto } from './dtos/list-projects-query.dto';
 import { UpdateProjectStatusDto } from './dtos/update-project-status.dto';
 
 interface AuthenticatedRequest extends ExpressRequest {
@@ -47,10 +49,15 @@ export class ProjectsController {
 
   @Get()
   @Roles('COORDINATOR')
-  @ApiOperation({ summary: 'Lista todos os projetos (COORDINATOR)' })
-  @ApiResponse({ status: 200, description: 'Lista de projetos' })
-  findAll() {
-    return this.projectsService.findAll();
+  @ApiOperation({
+    summary: 'Lista projetos paginados com filtros (COORDINATOR)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Página de projetos com envelope de paginação',
+  })
+  findAll(@Query() query: ListProjectsQueryDto) {
+    return this.projectsService.findAll(query);
   }
 
   @Get(':id')
