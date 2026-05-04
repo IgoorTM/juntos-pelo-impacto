@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Select } from '@/components/ui/select'
+import type { SelectOption } from '@/components/ui/select'
 import { fetchOscs, createOsc, updateOsc } from '@/features/oscs/api'
 import type { Osc, OscStatus, CreateOscDto, UpdateOscDto } from '@/features/oscs/types'
 
@@ -35,6 +37,19 @@ interface OscFormState {
   phone: string
   status: OscStatus
 }
+
+const STATUS_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Todos os status' },
+  { value: 'AVAILABLE', label: 'Disponível' },
+  { value: 'IN_PROGRESS', label: 'Em andamento' },
+  { value: 'BLOCKED', label: 'Bloqueada' },
+]
+
+const STATUS_FORM_OPTIONS: SelectOption[] = [
+  { value: 'AVAILABLE', label: 'Disponível' },
+  { value: 'IN_PROGRESS', label: 'Em andamento' },
+  { value: 'BLOCKED', label: 'Bloqueada' },
+]
 
 const EMPTY_FORM: OscFormState = {
   name: '',
@@ -150,24 +165,21 @@ function OscFormDialog({
               disabled={saving}
               rows={4}
               placeholder="Missão, público atendido e área geográfica."
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
               required
             />
           </div>
 
           {showStatus && (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <label className="text-sm font-medium leading-none">Status</label>
-              <select
+              <Select
                 value={form.status}
-                onChange={set('status')}
+                onChange={(v) => setForm((prev) => ({ ...prev, status: (v ?? 'AVAILABLE') as OscStatus }))}
+                options={STATUS_FORM_OPTIONS}
                 disabled={saving}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="AVAILABLE">Disponível</option>
-                <option value="IN_PROGRESS">Em andamento</option>
-                <option value="BLOCKED">Bloqueada</option>
-              </select>
+                className="w-full"
+              />
             </div>
           )}
 
@@ -436,23 +448,20 @@ export function OscsPage() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          placeholder="Buscar por nome..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
-        />
-        <select
+      <div className="flex items-center gap-3">
+        <div className="w-64 shrink-0">
+          <Input
+            placeholder="Buscar por nome..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as OscStatus | '')}
-          className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <option value="">Todos os status</option>
-          <option value="AVAILABLE">Disponível</option>
-          <option value="IN_PROGRESS">Em andamento</option>
-          <option value="BLOCKED">Bloqueada</option>
-        </select>
+          onChange={(v) => setStatusFilter((v ?? '') as OscStatus | '')}
+          options={STATUS_OPTIONS}
+          placeholder="Todos os status"
+        />
         <Button onClick={() => setCreateOpen(true)} className="ml-auto">
           <Plus className="mr-2 h-4 w-4" />
           Nova OSC
