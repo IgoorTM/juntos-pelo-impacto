@@ -34,6 +34,7 @@ describe('OscsService', () => {
           useValue: {
             osc: {
               findMany: jest.fn(),
+              count: jest.fn(),
               create: jest.fn(),
               findUnique: jest.fn(),
               update: jest.fn(),
@@ -52,50 +53,80 @@ describe('OscsService', () => {
   });
 
   describe('findAll', () => {
-    const includeProjects = {
-      include: { _count: { select: { projects: true } } },
-    };
+    const includeProjects = { _count: { select: { projects: true } } };
 
-    it('should return all OSCs for COORDINATOR', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.osc, 'findMany')
-        .mockResolvedValue([mockOscRaw]);
-
-      const result = await service.findAll('COORDINATOR');
-
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: {},
-        ...includeProjects,
-      });
-      expect(result).toEqual([mockOsc]);
+    beforeEach(() => {
+      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOscRaw]);
+      jest.spyOn(prisma.osc, 'count').mockResolvedValue(1);
     });
 
-    it('should return all OSCs for ADMIN', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.osc, 'findMany')
-        .mockResolvedValue([mockOscRaw]);
+    it('returns paginated envelope for COORDINATOR with no filters', async () => {
+      const result = await service.findAll('COORDINATOR', {});
 
-      const result = await service.findAll('ADMIN');
-
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: {},
-        ...includeProjects,
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {},
+          skip: 0,
+          take: 10,
+          include: includeProjects,
+        }),
+      );
+      expect(prisma.osc.count).toHaveBeenCalledWith({ where: {} });
+      expect(result).toEqual({
+        data: [mockOsc],
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
       });
-      expect(result).toEqual([mockOsc]);
     });
 
-    it('should return only AVAILABLE OSCs for STUDENT', async () => {
-      const findManySpy = jest
-        .spyOn(prisma.osc, 'findMany')
-        .mockResolvedValue([mockOscRaw]);
+    it('applies name search filter (case-insensitive) for COORDINATOR', async () => {
+      await service.findAll('COORDINATOR', { search: 'test' });
 
-      const result = await service.findAll('STUDENT');
+      const expectedWhere = { name: { contains: 'test', mode: 'insensitive' } };
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+      expect(prisma.osc.count).toHaveBeenCalledWith({ where: expectedWhere });
+    });
 
-      expect(findManySpy).toHaveBeenCalledWith({
-        where: { status: 'AVAILABLE' },
-        ...includeProjects,
-      });
-      expect(result).toEqual([mockOsc]);
+    it('applies status filter for COORDINATOR', async () => {
+      await service.findAll('COORDINATOR', { status: 'BLOCKED' as const });
+
+      const expectedWhere = { status: 'BLOCKED' };
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+    });
+
+    it('forces status=AVAILABLE for STUDENT and ignores status param', async () => {
+      await service.findAll('STUDENT', { status: 'BLOCKED' as const });
+
+      const expectedWhere = { status: 'AVAILABLE' };
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+    });
+
+    it('calculates skip correctly for page 2', async () => {
+      jest.spyOn(prisma.osc, 'count').mockResolvedValue(25);
+
+      const result = await service.findAll('COORDINATOR', { page: 2, limit: 10 });
+
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 10, take: 10 }),
+      );
+      expect(result.page).toBe(2);
+      expect(result.totalPages).toBe(3);
+    });
+
+    it('returns all OSCs for ADMIN with no filters', async () => {
+      await service.findAll('ADMIN', {});
+
+      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {} }),
+      );
     });
   });
 
