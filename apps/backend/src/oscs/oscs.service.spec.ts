@@ -9,6 +9,7 @@ describe('OscsService', () => {
     id: 'osc-123',
     name: 'OSC Test',
     description: 'A test OSC',
+    category: null as string | null,
     email: 'osc@test.com',
     phone: null as string | null,
     status: 'AVAILABLE' as const,

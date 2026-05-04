@@ -14,6 +14,7 @@ describe('ProjectsService', () => {
     id: 'osc-1',
     name: 'OSC Test',
     description: 'Desc',
+    category: null as string | null,
     email: null,
     phone: null,
     status: 'AVAILABLE' as const,
