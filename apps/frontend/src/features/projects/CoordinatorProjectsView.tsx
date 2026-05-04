@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Users, ChevronDown, ChevronRight } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
@@ -19,35 +17,93 @@ import type { Project, ProjectStatus } from './types'
 const STATUS_LABEL: Record<ProjectStatus, string> = {
   IN_PROGRESS: 'Em andamento',
   COMPLETED: 'Concluído',
-  ABANDONED: 'Abandonado',
-  ONGOING: 'Contínuo',
-  INCOMPLETE: 'Incompleto',
+  ABANDONED: 'Incompleto',
 }
 
-const STATUS_TONE: Record<ProjectStatus, 'blue' | 'green' | 'red' | 'yellow' | 'slate'> = {
-  IN_PROGRESS: 'blue',
-  COMPLETED: 'green',
-  ABANDONED: 'red',
-  ONGOING: 'yellow',
-  INCOMPLETE: 'yellow',
+// Labels used on cards when the project belongs to a past semester section
+const PAST_SECTION_LABEL: Record<ProjectStatus, string> = {
+  IN_PROGRESS: 'Em continuação',
+  COMPLETED: 'Concluído',
+  ABANDONED: 'Incompleto',
 }
 
-const ALL_STATUSES: ProjectStatus[] = [
-  'IN_PROGRESS',
-  'COMPLETED',
-  'ABANDONED',
-  'ONGOING',
-  'INCOMPLETE',
-]
+const STATUS_DOT: Record<ProjectStatus, string> = {
+  IN_PROGRESS: 'bg-blue-500',
+  COMPLETED: 'bg-green-500',
+  ABANDONED: 'bg-red-400',
+}
+
+const PAST_SECTION_DOT: Record<ProjectStatus, string> = {
+  IN_PROGRESS: 'bg-teal-500',
+  COMPLETED: 'bg-green-500',
+  ABANDONED: 'bg-red-400',
+}
+
+const ALL_STATUSES: ProjectStatus[] = ['IN_PROGRESS', 'COMPLETED', 'ABANDONED']
+
+function getLatestTeam(project: Project) {
+  if (project.teams.length === 0) return null
+  return [...project.teams].sort((a, b) => b.semester.localeCompare(a.semester))[0]
+}
 
 function getLatestSemester(project: Project): string {
-  if (project.teams.length === 0) return ''
-  return [...project.teams].sort((a, b) => b.semester.localeCompare(a.semester))[0].semester
+  return getLatestTeam(project)?.semester ?? ''
 }
 
 function isPendingProject(project: Project, currentSemester: string): boolean {
   return project.status === 'IN_PROGRESS' && getLatestSemester(project) < currentSemester
 }
+
+// --- Sub-components ---
+
+interface StatusBadgeProps {
+  status: ProjectStatus
+  pastSection?: boolean
+}
+
+function StatusBadge({ status, pastSection = false }: StatusBadgeProps) {
+  const label = pastSection ? PAST_SECTION_LABEL[status] : STATUS_LABEL[status]
+  const dot = pastSection ? PAST_SECTION_DOT[status] : STATUS_DOT[status]
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-foreground dark:border-border dark:bg-card">
+      <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+      {label}
+    </span>
+  )
+}
+
+function PendingBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+      Pendente
+    </span>
+  )
+}
+
+interface SectionHeaderProps {
+  title: string
+  count: number
+  amber?: boolean
+}
+
+function SectionHeader({ title, count, amber = false }: SectionHeaderProps) {
+  const unit = count === 1 ? 'projeto' : 'projetos'
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <h2
+        className={`text-xs font-semibold uppercase tracking-widest ${amber ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}
+      >
+        {title}
+      </h2>
+      <span className="text-xs text-muted-foreground">
+        {count} {unit}
+      </span>
+    </div>
+  )
+}
+
+// --- Modal ---
 
 interface StatusChangeModalProps {
   project: Project | null
@@ -77,7 +133,7 @@ function StatusChangeModal({ project, onClose, onConfirm, saving, error }: Statu
     <Dialog open={!!project} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Alterar status do projeto</DialogTitle>
+          <DialogTitle>Definir status do projeto</DialogTitle>
           {project && (
             <DialogDescription>
               Projeto: <strong>{project.name}</strong>
@@ -111,7 +167,10 @@ function StatusChangeModal({ project, onClose, onConfirm, saving, error }: Statu
                   onChange={() => setSelected(status)}
                   className="accent-primary"
                 />
-                <Badge tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Badge>
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                  <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[status]}`} />
+                  {STATUS_LABEL[status]}
+                </span>
               </label>
             ))}
           </div>
@@ -141,107 +200,87 @@ function StatusChangeModal({ project, onClose, onConfirm, saving, error }: Statu
   )
 }
 
+// --- Project Card ---
+
 interface ProjectCardProps {
   project: Project
   isPending: boolean
+  pastSection?: boolean
   onChangeStatus: (project: Project) => void
 }
 
-function ProjectCard({ project, isPending, onChangeStatus }: ProjectCardProps) {
-  const [expanded, setExpanded] = useState(false)
+function ProjectCard({ project, isPending, pastSection = false, onChangeStatus }: ProjectCardProps) {
+  const latestTeam = getLatestTeam(project)
 
   return (
-    <Card
-      className={
+    <div
+      className={`rounded-lg border bg-card p-5 ${
         isPending
-          ? 'border-yellow-300 bg-yellow-50/50 dark:border-yellow-800/50 dark:bg-yellow-950/10'
+          ? 'border-amber-200 bg-amber-50/40 dark:border-amber-800/40 dark:bg-amber-950/10'
           : ''
-      }
+      }`}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              {isPending && (
-                <AlertTriangle className="h-4 w-4 shrink-0 text-yellow-600 dark:text-yellow-400" />
-              )}
-              <CardTitle className="truncate text-base">{project.name}</CardTitle>
-            </div>
-            <p className="mt-0.5 text-sm text-muted-foreground">{project.osc.name}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Badge tone={STATUS_TONE[project.status]}>{STATUS_LABEL[project.status]}</Badge>
-            <Button variant="outline" size="sm" onClick={() => onChangeStatus(project)}>
-              Alterar status
-            </Button>
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <StatusBadge status={project.status} pastSection={pastSection} />
+          {isPending && <PendingBadge />}
         </div>
-      </CardHeader>
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={() => onChangeStatus(project)}
+        >
+          Definir status
+        </Button>
+      </div>
 
-      {project.teams.length > 0 && (
-        <CardContent className="pt-0">
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            {expanded ? (
-              <ChevronDown className="h-3.5 w-3.5" />
-            ) : (
-              <ChevronRight className="h-3.5 w-3.5" />
-            )}
-            <Users className="h-3.5 w-3.5" />
-            {project.teams.length} {project.teams.length === 1 ? 'equipe' : 'equipes'}
-          </button>
+      <div className="mt-3">
+        <p className="text-base font-semibold text-foreground">{project.name}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          para <span className="font-semibold text-foreground">{project.osc.name}</span>
+        </p>
+      </div>
 
-          {expanded && (
-            <div className="mt-3 space-y-3">
-              {[...project.teams]
-                .sort((a, b) => b.semester.localeCompare(a.semester))
-                .map((team) => (
-                  <div key={team.id} className="rounded-md border bg-muted/30 p-3">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-medium">
-                        Semestre {team.semester} — código{' '}
-                        <span className="font-mono">{team.code}</span>
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        {team.members.length}{' '}
-                        {team.members.length === 1 ? 'membro' : 'membros'}
-                      </span>
-                    </div>
-                    {team.members.length > 0 && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {team.members.map((m) => m.name).join(', ')}
-                      </p>
-                    )}
-                  </div>
-                ))}
-            </div>
+      {latestTeam && (
+        <div className="mt-4 flex min-w-0 flex-wrap items-center gap-2">
+          <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+            {latestTeam.code}
+          </span>
+          <span className="text-xs text-muted-foreground">{latestTeam.semester}</span>
+          {latestTeam.members.length > 0 && (
+            <span className="min-w-0 truncate text-xs text-muted-foreground">
+              {latestTeam.members.map((m) => m.name).join(' · ')}
+            </span>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </div>
   )
 }
 
 function ProjectCardSkeleton() {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-5 w-20 rounded-full" />
-            <Skeleton className="h-8 w-28 rounded-md" />
-          </div>
-        </div>
-      </CardHeader>
-    </Card>
+    <div className="rounded-lg border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <Skeleton className="h-6 w-28 rounded-full" />
+        <Skeleton className="h-8 w-28 rounded-md" />
+      </div>
+      <div className="mt-3 space-y-2">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-4 w-36" />
+      </div>
+      <div className="mt-4 flex items-center gap-2">
+        <Skeleton className="h-5 w-16 rounded-md" />
+        <Skeleton className="h-5 w-12" />
+        <Skeleton className="h-6 w-6 rounded-full" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+    </div>
   )
 }
+
+// --- Page ---
 
 export function CoordinatorProjectsView() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -283,14 +322,16 @@ export function CoordinatorProjectsView() {
     }
   }
 
+  const pendingProjects = projects.filter((p) => isPendingProject(p, currentSemester))
   const currentProjects = projects.filter(
     (p) => getLatestSemester(p) === currentSemester || p.teams.length === 0,
   )
   const pastProjects = projects.filter(
-    (p) => p.teams.length > 0 && getLatestSemester(p) < currentSemester,
+    (p) =>
+      p.teams.length > 0 &&
+      getLatestSemester(p) < currentSemester &&
+      !isPendingProject(p, currentSemester),
   )
-
-  const pendingCount = projects.filter((p) => isPendingProject(p, currentSemester)).length
 
   if (error) {
     return (
@@ -304,29 +345,41 @@ export function CoordinatorProjectsView() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Projetos</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gerenciamento de projetos e equipes do programa.
-          </p>
-        </div>
-        {!loading && pendingCount > 0 && (
-          <div className="flex items-center gap-1.5 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-sm text-yellow-800 dark:border-yellow-800/50 dark:bg-yellow-950/20 dark:text-yellow-300">
-            <AlertTriangle className="h-4 w-4" />
-            {pendingCount} pendente{pendingCount > 1 ? 's' : ''}
-          </div>
-        )}
+    <div className="space-y-10">
+      <div>
+        <h1 className="font-serif text-4xl font-bold text-foreground">Projetos</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Acompanhe projetos por semestre, defina status finais e resolva pendências do período
+          anterior.
+        </p>
       </div>
+
+      {/* Pending projects */}
+      {!loading && pendingProjects.length > 0 && (
+        <section>
+          <SectionHeader
+            title="Pendentes de fechamento"
+            count={pendingProjects.length}
+            amber
+          />
+          <div className="space-y-3">
+            {pendingProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                isPending
+                onChangeStatus={setStatusTarget}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Current semester */}
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Semestre atual — {currentSemester}
-        </h2>
+        <SectionHeader title={`Semestre ${currentSemester}`} count={loading ? 0 : currentProjects.length} />
         {loading ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <ProjectCardSkeleton key={i} />
             ))}
@@ -334,12 +387,12 @@ export function CoordinatorProjectsView() {
         ) : currentProjects.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum projeto no semestre atual.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {currentProjects.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
-                isPending={isPendingProject(project, currentSemester)}
+                isPending={false}
                 onChangeStatus={setStatusTarget}
               />
             ))}
@@ -350,17 +403,16 @@ export function CoordinatorProjectsView() {
       {/* Past semesters */}
       {!loading && pastProjects.length > 0 && (
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Semestres anteriores
-          </h2>
-          <div className="space-y-3">
+          <SectionHeader title="Semestres anteriores" count={pastProjects.length} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {pastProjects
               .sort((a, b) => getLatestSemester(b).localeCompare(getLatestSemester(a)))
               .map((project) => (
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  isPending={isPendingProject(project, currentSemester)}
+                  isPending={false}
+                  pastSection
                   onChangeStatus={setStatusTarget}
                 />
               ))}

@@ -1,4 +1,4 @@
-export type ProjectStatus = 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED' | 'ONGOING' | 'INCOMPLETE'
+export type ProjectStatus = 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED'
 
 export interface TeamMember {
   id: string
