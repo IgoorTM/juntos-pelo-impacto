@@ -10,7 +10,7 @@ const config: Config = {
       ? ['<rootDir>/test/**/*.e2e-spec.ts']
       : ['<rootDir>/src/**/*.spec.ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.spec.json' }],
   },
   testEnvironment: 'node',
   moduleNameMapper: {

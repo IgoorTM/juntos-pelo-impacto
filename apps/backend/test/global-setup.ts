@@ -1,11 +1,8 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { execSync } = require('child_process');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { config } = require('dotenv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const path = require('path');
+import { execSync } from 'child_process';
+import { config } from 'dotenv';
+import path from 'path';
 
-module.exports = async function globalSetup() {
+export default async function globalSetup() {
   config({ path: path.resolve(__dirname, '../.env.test') });
 
   const dbUrl = process.env.DATABASE_URL as string;
@@ -19,9 +16,9 @@ module.exports = async function globalSetup() {
     // database already exists — safe to continue
   }
 
-  execSync(`npx prisma db push --accept-data-loss`, {
+  execSync('npx prisma db push --accept-data-loss', {
     cwd: path.resolve(__dirname, '..'),
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: 'inherit',
   });
-};
+}

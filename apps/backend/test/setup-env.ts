@@ -1,6 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { config } = require('dotenv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const path = require('path');
+import { config } from 'dotenv';
+import path from 'path';
 
 config({ path: path.resolve(__dirname, '../.env.test') });
