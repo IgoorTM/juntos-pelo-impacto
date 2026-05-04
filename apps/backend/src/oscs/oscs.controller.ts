@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import {
@@ -16,6 +17,7 @@ import {
 import { Request as ExpressRequest } from 'express';
 import { OscsService } from './oscs.service';
 import { CreateOscDto } from './dtos/create-osc.dto';
+import { ListOscsQueryDto } from './dtos/list-oscs-query.dto';
 import { UpdateOscDto } from './dtos/update-osc.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 
@@ -30,10 +32,18 @@ export class OscsController {
   constructor(private oscsService: OscsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lista OSCs (STUDENT vê apenas AVAILABLE)' })
-  @ApiResponse({ status: 200, description: 'Lista de OSCs' })
-  findAll(@Request() req: AuthenticatedRequest) {
-    return this.oscsService.findAll(req.user.role);
+  @ApiOperation({
+    summary: 'Lista OSCs paginadas com filtros (STUDENT vê apenas AVAILABLE)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Página de OSCs com envelope de paginação',
+  })
+  findAll(
+    @Request() req: AuthenticatedRequest,
+    @Query() query: ListOscsQueryDto,
+  ) {
+    return this.oscsService.findAll(req.user.role, query);
   }
 
   @Post()
