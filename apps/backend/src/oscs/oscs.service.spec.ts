@@ -54,16 +54,20 @@ describe('OscsService', () => {
 
   describe('findAll', () => {
     const includeProjects = { _count: { select: { projects: true } } };
+    let findManySpy: jest.SpyInstance;
+    let countSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      jest.spyOn(prisma.osc, 'findMany').mockResolvedValue([mockOscRaw]);
-      jest.spyOn(prisma.osc, 'count').mockResolvedValue(1);
+      findManySpy = jest
+        .spyOn(prisma.osc, 'findMany')
+        .mockResolvedValue([mockOscRaw]);
+      countSpy = jest.spyOn(prisma.osc, 'count').mockResolvedValue(1);
     });
 
     it('returns paginated envelope for COORDINATOR with no filters', async () => {
       const result = await service.findAll('COORDINATOR', {});
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {},
           skip: 0,
@@ -71,7 +75,7 @@ describe('OscsService', () => {
           include: includeProjects,
         }),
       );
-      expect(prisma.osc.count).toHaveBeenCalledWith({ where: {} });
+      expect(countSpy).toHaveBeenCalledWith({ where: {} });
       expect(result).toEqual({
         data: [mockOsc],
         total: 1,
@@ -85,17 +89,17 @@ describe('OscsService', () => {
       await service.findAll('COORDINATOR', { search: 'test' });
 
       const expectedWhere = { name: { contains: 'test', mode: 'insensitive' } };
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
-      expect(prisma.osc.count).toHaveBeenCalledWith({ where: expectedWhere });
+      expect(countSpy).toHaveBeenCalledWith({ where: expectedWhere });
     });
 
     it('applies status filter for COORDINATOR', async () => {
       await service.findAll('COORDINATOR', { status: 'BLOCKED' as const });
 
       const expectedWhere = { status: 'BLOCKED' };
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
     });
@@ -104,20 +108,20 @@ describe('OscsService', () => {
       await service.findAll('STUDENT', { status: 'BLOCKED' as const });
 
       const expectedWhere = { status: 'AVAILABLE' };
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
     });
 
     it('calculates skip correctly for page 2', async () => {
-      jest.spyOn(prisma.osc, 'count').mockResolvedValue(25);
+      countSpy.mockResolvedValue(25);
 
       const result = await service.findAll('COORDINATOR', {
         page: 2,
         limit: 10,
       });
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 10, take: 10 }),
       );
       expect(result.page).toBe(2);
@@ -127,7 +131,7 @@ describe('OscsService', () => {
     it('returns all OSCs for ADMIN with no filters', async () => {
       await service.findAll('ADMIN', {});
 
-      expect(prisma.osc.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: {} }),
       );
     });

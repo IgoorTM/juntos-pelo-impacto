@@ -177,32 +177,35 @@ describe('ProjectsService', () => {
   };
 
   describe('findAll', () => {
+    let findManySpy: jest.SpyInstance;
+    let countSpy: jest.SpyInstance;
+
     beforeEach(() => {
-      jest
+      findManySpy = jest
         .spyOn(prisma.project, 'findMany')
         .mockResolvedValue([mockProjectFull]);
-      jest.spyOn(prisma.project, 'count').mockResolvedValue(1);
+      countSpy = jest.spyOn(prisma.project, 'count').mockResolvedValue(1);
     });
 
     it('returns paginated envelope with no filters', async () => {
       const result = await service.findAll({});
 
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: {}, skip: 0, take: 10 }),
       );
-      expect(prisma.project.count).toHaveBeenCalledWith({ where: {} });
-      expect(result).toEqual({
-        data: expect.arrayContaining([
+      expect(countSpy).toHaveBeenCalledWith({ where: {} });
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(1);
+      expect(result.data).toEqual(
+        expect.arrayContaining([
           expect.objectContaining({
             id: 'proj-1',
             osc: { id: 'osc-1', name: 'OSC Test' },
           }),
         ]),
-        total: 1,
-        page: 1,
-        limit: 10,
-        totalPages: 1,
-      });
+      );
     });
 
     it('applies project name search filter', async () => {
@@ -211,12 +214,10 @@ describe('ProjectsService', () => {
       const expectedWhere = {
         name: { contains: 'Solidario', mode: 'insensitive' },
       };
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
-      expect(prisma.project.count).toHaveBeenCalledWith({
-        where: expectedWhere,
-      });
+      expect(countSpy).toHaveBeenCalledWith({ where: expectedWhere });
     });
 
     it('applies OSC name search filter', async () => {
@@ -225,15 +226,15 @@ describe('ProjectsService', () => {
       const expectedWhere = {
         osc: { name: { contains: 'Verde', mode: 'insensitive' } },
       };
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: expectedWhere }),
       );
     });
 
     it('applies status filter', async () => {
-      await service.findAll({ status: 'COMPLETED' });
+      await service.findAll({ status: ProjectStatus.COMPLETED });
 
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ where: { status: 'COMPLETED' } }),
       );
     });
@@ -242,10 +243,10 @@ describe('ProjectsService', () => {
       await service.findAll({
         search: 'Proj',
         oscSearch: 'OSC',
-        status: 'IN_PROGRESS',
+        status: ProjectStatus.IN_PROGRESS,
       });
 
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
             name: { contains: 'Proj', mode: 'insensitive' },
@@ -257,11 +258,11 @@ describe('ProjectsService', () => {
     });
 
     it('calculates skip for page 3, limit 5', async () => {
-      jest.spyOn(prisma.project, 'count').mockResolvedValue(20);
+      countSpy.mockResolvedValue(20);
 
       const result = await service.findAll({ page: 3, limit: 5 });
 
-      expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect(findManySpy).toHaveBeenCalledWith(
         expect.objectContaining({ skip: 10, take: 5 }),
       );
       expect(result.totalPages).toBe(4);
