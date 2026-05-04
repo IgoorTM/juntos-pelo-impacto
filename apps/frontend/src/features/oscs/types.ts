@@ -27,3 +27,18 @@ export interface UpdateOscDto {
   phone?: string
   status?: OscStatus
 }
+
+export interface OscListParams {
+  page: number
+  limit: number
+  search?: string
+  status?: OscStatus
+}
+
+export interface OscListPage {
+  data: Osc[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}

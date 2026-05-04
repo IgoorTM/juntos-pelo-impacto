@@ -1,8 +1,8 @@
 import { httpClient } from '@/lib/httpClient'
-import type { Osc, CreateOscDto, UpdateOscDto } from './types'
+import type { Osc, OscListPage, OscListParams, CreateOscDto, UpdateOscDto } from './types'
 
-export async function fetchOscs(): Promise<Osc[]> {
-  const { data } = await httpClient.get<Osc[]>('/oscs')
+export async function fetchOscs(params: OscListParams): Promise<OscListPage> {
+  const { data } = await httpClient.get<OscListPage>('/oscs', { params })
   return data
 }
 
