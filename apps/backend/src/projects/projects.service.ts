@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TeamsService } from '../teams/teams.service';
 import { getCurrentSemester } from '../common/get-current-semester';
 import { CreateProjectDto } from './dtos/create-project.dto';
+import { ListProjectsQueryDto } from './dtos/list-projects-query.dto';
 
 interface ProjectRow {
   id: string;
@@ -61,11 +62,33 @@ export class ProjectsService {
     };
   }
 
-  async findAll() {
-    const projects = await this.prisma.project.findMany({
-      include: this.projectInclude,
-    });
-    return projects.map((p) => this.mapProject(p as unknown as ProjectRow));
+  async findAll(query: ListProjectsQueryDto) {
+    const { page = 1, limit = 10, search, oscSearch, status } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProjectWhereInput = {
+      ...(search && { name: { contains: search, mode: 'insensitive' } }),
+      ...(oscSearch && { osc: { name: { contains: oscSearch, mode: 'insensitive' } } }),
+      ...(status && { status }),
+    };
+
+    const [projects, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        include: this.projectInclude,
+        skip,
+        take: limit,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return {
+      data: projects.map((p) => this.mapProject(p as unknown as ProjectRow)),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string) {

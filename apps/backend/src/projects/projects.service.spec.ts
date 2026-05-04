@@ -62,6 +62,7 @@ describe('ProjectsService', () => {
             project: {
               create: jest.fn(),
               findMany: jest.fn(),
+              count: jest.fn(),
               findUnique: jest.fn(),
               update: jest.fn(),
             },
@@ -176,18 +177,83 @@ describe('ProjectsService', () => {
   };
 
   describe('findAll', () => {
-    it('returns all projects with osc, teams and members', async () => {
-      jest
-        .spyOn(prisma.project, 'findMany')
-        .mockResolvedValue([mockProjectFull]);
+    beforeEach(() => {
+      jest.spyOn(prisma.project, 'findMany').mockResolvedValue([mockProjectFull]);
+      jest.spyOn(prisma.project, 'count').mockResolvedValue(1);
+    });
 
-      const result = await service.findAll();
+    it('returns paginated envelope with no filters', async () => {
+      const result = await service.findAll({});
 
-      expect(result).toHaveLength(1);
-      expect(result[0].osc).toEqual({ id: 'osc-1', name: 'OSC Test' });
-      expect(result[0].teams[0].members).toEqual([
-        { id: 'user-1', name: 'Aluno Test' },
-      ]);
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: {}, skip: 0, take: 10 }),
+      );
+      expect(prisma.project.count).toHaveBeenCalledWith({ where: {} });
+      expect(result).toEqual({
+        data: expect.arrayContaining([
+          expect.objectContaining({ id: 'proj-1', osc: { id: 'osc-1', name: 'OSC Test' } }),
+        ]),
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
+    });
+
+    it('applies project name search filter', async () => {
+      await service.findAll({ search: 'Solidario' });
+
+      const expectedWhere = { name: { contains: 'Solidario', mode: 'insensitive' } };
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+      expect(prisma.project.count).toHaveBeenCalledWith({ where: expectedWhere });
+    });
+
+    it('applies OSC name search filter', async () => {
+      await service.findAll({ oscSearch: 'Verde' });
+
+      const expectedWhere = { osc: { name: { contains: 'Verde', mode: 'insensitive' } } };
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expectedWhere }),
+      );
+    });
+
+    it('applies status filter', async () => {
+      await service.findAll({ status: 'COMPLETED' as ProjectStatus });
+
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { status: 'COMPLETED' } }),
+      );
+    });
+
+    it('combines all three filters with AND', async () => {
+      await service.findAll({
+        search: 'Proj',
+        oscSearch: 'OSC',
+        status: 'IN_PROGRESS' as ProjectStatus,
+      });
+
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            name: { contains: 'Proj', mode: 'insensitive' },
+            osc: { name: { contains: 'OSC', mode: 'insensitive' } },
+            status: 'IN_PROGRESS',
+          },
+        }),
+      );
+    });
+
+    it('calculates skip for page 3, limit 5', async () => {
+      jest.spyOn(prisma.project, 'count').mockResolvedValue(20);
+
+      const result = await service.findAll({ page: 3, limit: 5 });
+
+      expect(prisma.project.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 10, take: 5 }),
+      );
+      expect(result.totalPages).toBe(4);
     });
   });
 
