@@ -15,7 +15,8 @@ import {
 import { Select } from '@/components/ui/select'
 import type { SelectOption } from '@/components/ui/select'
 import { fetchOscs, createOsc, updateOsc } from '@/features/oscs/api'
-import type { Osc, OscStatus, CreateOscDto, UpdateOscDto } from '@/features/oscs/types'
+import type { Osc, OscCategory, OscStatus, CreateOscDto, UpdateOscDto } from '@/features/oscs/types'
+import { OSC_CATEGORY_LABEL } from '@/features/oscs/types'
 
 const OSC_STATUS_LABEL: Record<OscStatus, string> = {
   AVAILABLE: 'Disponível',
@@ -31,7 +32,7 @@ const OSC_STATUS_TONE: Record<OscStatus, 'green' | 'blue' | 'red'> = {
 
 interface OscFormState {
   name: string
-  category: string
+  category: OscCategory | ''
   description: string
   email: string
   phone: string
@@ -49,6 +50,11 @@ const STATUS_FORM_OPTIONS: SelectOption[] = [
   { value: 'AVAILABLE', label: 'Disponível' },
   { value: 'IN_PROGRESS', label: 'Em andamento' },
   { value: 'BLOCKED', label: 'Bloqueada' },
+]
+
+const CATEGORY_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Selecione a categoria' },
+  ...Object.entries(OSC_CATEGORY_LABEL).map(([value, label]) => ({ value, label })),
 ]
 
 const EMPTY_FORM: OscFormState = {
@@ -89,6 +95,10 @@ function OscFormDialog({
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
+  }
+
+  function setCategory(value: string | null) {
+    setForm((prev) => ({ ...prev, category: (value as OscCategory) ?? '' }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -132,13 +142,16 @@ function OscFormDialog({
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Área de atuação"
-              placeholder="Ex: Educação"
-              value={form.category}
-              onChange={set('category')}
-              disabled={saving}
-            />
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium leading-none">Área de atuação</label>
+              <Select
+                options={CATEGORY_OPTIONS}
+                value={form.category}
+                onChange={setCategory}
+                disabled={saving}
+                className="w-full"
+              />
+            </div>
             <Input
               label="E-mail de contato"
               type="email"
@@ -241,7 +254,7 @@ function OscCard({ osc, onEdit }: OscCardProps) {
             <p className="font-semibold leading-snug">{osc.name}</p>
             {osc.category && (
               <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {osc.category}
+                {OSC_CATEGORY_LABEL[osc.category]}
               </p>
             )}
           </div>
@@ -383,7 +396,7 @@ export function OscsPage() {
     setCreateError(null)
     const dto: CreateOscDto = {
       name: form.name.trim(),
-      ...(form.category.trim() && { category: form.category.trim() }),
+      ...(form.category && { category: form.category }),
       description: form.description.trim(),
       ...(form.email.trim() && { email: form.email.trim() }),
       ...(form.phone.trim() && { phone: form.phone.trim() }),
@@ -408,7 +421,7 @@ export function OscsPage() {
     setEditError(null)
     const dto: UpdateOscDto = {
       name: form.name.trim(),
-      ...(form.category.trim() ? { category: form.category.trim() } : { category: undefined }),
+      ...(form.category ? { category: form.category } : { category: undefined }),
       description: form.description.trim(),
       status: form.status,
       ...(form.email.trim() ? { email: form.email.trim() } : { email: undefined }),
@@ -431,7 +444,7 @@ export function OscsPage() {
   const editInitial: OscFormState | undefined = editTarget
     ? {
         name: editTarget.name,
-        category: editTarget.category ?? '',
+        category: editTarget.category,
         description: editTarget.description,
         email: editTarget.email ?? '',
         phone: editTarget.phone ?? '',

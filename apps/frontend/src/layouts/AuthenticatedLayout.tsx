@@ -41,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'OSCs', path: '/oscs', icon: Building2, roles: ['COORDINATOR', 'ADMIN'] },
   { label: 'Equipes', path: '/teams', icon: Users, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
   { label: 'Projetos', path: '/projects', icon: FolderKanban, roles: null },
+  { label: 'OSCs disponíveis', path: '/oscs-disponiveis', icon: Building2, roles: ['STUDENT'] },
   { label: 'Formulários', path: '/forms', icon: FileText, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
   { label: 'Relatórios', path: '/reports', icon: BarChart2, roles: ['COORDINATOR', 'ADMIN'], disabled: true },
 ]

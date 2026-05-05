@@ -11,6 +11,11 @@ export async function updateProjectStatus(id: string, status: ProjectStatus): Pr
   return data
 }
 
+export async function fetchStudentProjects(): Promise<Project[]> {
+  const { data } = await httpClient.get<{ data: Project[] }>('/projects')
+  return data.data
+}
+
 export async function continueProject(id: string): Promise<Project> {
   const { data } = await httpClient.post<Project>(`/projects/${id}/continue`)
   return data
