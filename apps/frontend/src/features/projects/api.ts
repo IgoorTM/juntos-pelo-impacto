@@ -1,9 +1,20 @@
 import { httpClient } from '@/lib/httpClient'
 import type { Project, ProjectStatus } from './types'
 
+export interface CreateProjectDto {
+  name: string
+  description: string
+  oscId: string
+}
+
 export async function fetchProjects(): Promise<Project[]> {
   const { data } = await httpClient.get<{ data: Project[] }>('/projects')
   return data.data
+}
+
+export async function createProject(dto: CreateProjectDto): Promise<Project> {
+  const { data } = await httpClient.post<Project>('/projects', dto)
+  return data
 }
 
 export async function updateProjectStatus(id: string, status: ProjectStatus): Promise<Project> {
