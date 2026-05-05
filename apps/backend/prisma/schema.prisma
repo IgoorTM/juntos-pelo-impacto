@@ -25,6 +25,15 @@ enum ProjectStatus {
   ABANDONED
 }
 
+enum OscCategory {
+  EDUCACAO
+  CULTURA
+  ASSISTENCIA_SOCIAL
+  SAUDE
+  MEIO_AMBIENTE
+  OUTROS
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -81,15 +90,15 @@ model TeamMember {
 }
 
 model Osc {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  category    String?
+  id          String      @id @default(cuid())
+  name        String      @unique
+  category    OscCategory @default(OUTROS)
   description String
   email       String?
   phone       String?
-  status      OscStatus @default(AVAILABLE)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  status      OscStatus   @default(AVAILABLE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   projects Project[]
 

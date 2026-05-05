@@ -62,7 +62,7 @@ export class ProjectsService {
     };
   }
 
-  async findAll(query: ListProjectsQueryDto) {
+  async findAll(query: ListProjectsQueryDto, userId?: string, role?: string) {
     const { page = 1, limit = 10, search, oscSearch, status } = query;
     const skip = (page - 1) * limit;
 
@@ -73,6 +73,12 @@ export class ProjectsService {
       }),
       ...(status && { status }),
     };
+
+    if (role === 'STUDENT' && userId) {
+      where.teams = {
+        some: { members: { some: { userId } } },
+      };
+    }
 
     const [projects, total] = await Promise.all([
       this.prisma.project.findMany({

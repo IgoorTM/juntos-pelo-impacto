@@ -1,4 +1,4 @@
-import { PrismaClient, OscStatus, ProjectStatus, UserRole } from '@prisma/client';
+import { PrismaClient, OscCategory, OscStatus, ProjectStatus, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ const SEED_PASSWORD = 'Seed1234!';
 
 const OSC_SEED_DATA: Array<{
   name: string;
-  category: string;
+  category: OscCategory;
   description: string;
   email: string;
   phone: string;
@@ -16,7 +16,7 @@ const OSC_SEED_DATA: Array<{
 }> = [
   {
     name: 'Instituto Recriar',
-    category: 'Educação',
+    category: OscCategory.EDUCACAO,
     description:
       'Promove atividades culturais e educacionais para crianças e adolescentes em situação de vulnerabilidade social na periferia de São Paulo.',
     email: 'contato@institutorecriar.org.br',
@@ -25,7 +25,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Ação Solidária Brasil',
-    category: 'Assistência Social',
+    category: OscCategory.ASSISTENCIA_SOCIAL,
     description:
       'Atua na distribuição de cestas básicas, roupas e materiais escolares para famílias de baixa renda em comunidades carentes.',
     email: 'acao@solidariabrasil.org',
@@ -35,7 +35,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Centro Comunitário Esperança',
-    category: 'Capacitação Profissional',
+    category: OscCategory.OUTROS,
     description:
       'Oferece cursos profissionalizantes gratuitos para jovens de 15 a 29 anos, com foco em tecnologia, gastronomia e artesanato.',
     email: 'centro@esperancacc.org.br',
@@ -44,7 +44,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Associação Amigos do Verde',
-    category: 'Meio Ambiente',
+    category: OscCategory.MEIO_AMBIENTE,
     description:
       'Desenvolve projetos de educação ambiental em escolas públicas, promovendo a consciência ecológica e o cuidado com o meio ambiente urbano.',
     email: 'verde@amigasdoverde.org',
@@ -53,7 +53,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Casa da Acolhida',
-    category: 'Direitos Humanos',
+    category: OscCategory.ASSISTENCIA_SOCIAL,
     description:
       'Abrigo transitório para mulheres vítimas de violência doméstica, com suporte psicológico, jurídico e reinserção profissional.',
     email: 'casa@casadaacolhida.org.br',
@@ -63,7 +63,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Fundação Caminhos',
-    category: 'Reinserção Social',
+    category: OscCategory.OUTROS,
     description:
       'Apoia a reinserção social de egressos do sistema prisional por meio de capacitação profissional e acompanhamento psicossocial.',
     email: 'fundacao@caminhos.org',
@@ -72,7 +72,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'ONG Mãos que Constroem',
-    category: 'Habitação',
+    category: OscCategory.OUTROS,
     description:
       'Realiza reformas habitacionais em moradias precárias de famílias em situação de risco, com mutirões voluntários e doação de materiais.',
     email: 'ong@maosqueconstroem.org.br',
@@ -82,7 +82,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Instituto Luz da Infância',
-    category: 'Educação',
+    category: OscCategory.EDUCACAO,
     description:
       'Desenvolve programas de reforço escolar, arte e esporte para crianças de 6 a 14 anos em comunidades sem acesso a atividades extracurriculares.',
     email: 'luz@luzinfancia.org.br',
@@ -92,7 +92,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Coletivo Raízes',
-    category: 'Cultura',
+    category: OscCategory.CULTURA,
     description:
       'Fortalece a identidade cultural de comunidades quilombolas e indígenas urbanas por meio de eventos, oficinas e produção audiovisual.',
     email: 'coletivo@raizescultura.org',
@@ -101,7 +101,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Projeto Navegar',
-    category: 'Inclusão',
+    category: OscCategory.OUTROS,
     description:
       'Utiliza a vela e o remo como ferramentas terapêuticas para jovens com deficiência física e intelectual, promovendo autonomia e inclusão.',
     email: 'projeto@navegar.org.br',
@@ -110,7 +110,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Associação Semear',
-    category: 'Segurança Alimentar',
+    category: OscCategory.OUTROS,
     description:
       'Promove a agricultura urbana em hortas comunitárias, gerando renda e segurança alimentar para famílias de baixa renda.',
     email: 'associacao@semearurbanx.org',
@@ -119,7 +119,7 @@ const OSC_SEED_DATA: Array<{
   },
   {
     name: 'Instituto Novo Horizonte',
-    category: 'Saúde',
+    category: OscCategory.SAUDE,
     description:
       'Atende idosos em situação de abandono ou vulnerabilidade, oferecendo convivência, cuidados básicos de saúde e atividades cognitivas.',
     email: 'contato@novohorizonte.org.br',
