@@ -20,7 +20,7 @@ export function ActionCard({
 }: ActionCardProps) {
   return (
     <div
-      className={`rounded-lg border bg-card p-5 ${disabled ? 'opacity-50' : ''}`}
+      className={`flex h-full flex-col rounded-lg border bg-card p-5 ${disabled ? 'opacity-50' : ''}`}
     >
       <div className="flex items-start gap-3">
         {icon && <div className="text-xl">{icon}</div>}
@@ -29,15 +29,16 @@ export function ActionCard({
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onClick}
-        disabled={disabled}
-        className="mt-3"
-      >
-        {buttonLabel} →
-      </Button>
+      <div className="mt-auto pt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onClick}
+          disabled={disabled}
+        >
+          {buttonLabel} →
+        </Button>
+      </div>
     </div>
   )
 }

@@ -89,7 +89,7 @@ export function StudentProjectsView() {
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <ActionCard
           icon={<BookOpen className="h-5 w-5" />}
           title="Criar novo projeto"
