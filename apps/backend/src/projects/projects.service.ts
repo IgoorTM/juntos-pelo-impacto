@@ -159,7 +159,13 @@ export class ProjectsService {
           }
 
           const project = await tx.project.create({
-            data: { name: dto.name, oscId: dto.oscId },
+            data: {
+              name: dto.name,
+              oscId: dto.oscId,
+              ...(dto.description !== undefined && {
+                description: dto.description,
+              }),
+            },
           });
 
           const team = await tx.team.create({

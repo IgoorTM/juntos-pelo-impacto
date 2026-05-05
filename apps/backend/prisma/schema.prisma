@@ -48,12 +48,13 @@ model User {
 }
 
 model Project {
-  id        String        @id @default(cuid())
-  name      String        @unique
-  oscId     String
-  status    ProjectStatus @default(IN_PROGRESS)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String        @default("")
+  oscId       String
+  status      ProjectStatus @default(IN_PROGRESS)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   osc   Osc    @relation(fields: [oscId], references: [id], onDelete: Restrict)
   teams Team[]
