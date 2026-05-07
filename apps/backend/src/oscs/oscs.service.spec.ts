@@ -2,14 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OscsService } from './oscs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { OscCategory, Prisma } from '@prisma/client';
 
 describe('OscsService', () => {
   const oscBase = {
     id: 'osc-123',
     name: 'OSC Test',
     description: 'A test OSC',
-    category: null as string | null,
+    category: OscCategory.OUTROS,
     email: 'osc@test.com',
     phone: null as string | null,
     status: 'AVAILABLE' as const,

@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { OscCategory } from '@prisma/client';
 
 export class CreateOscDto {
   @ApiProperty({
@@ -11,13 +18,13 @@ export class CreateOscDto {
   name: string;
 
   @ApiPropertyOptional({
-    example: 'Educação',
+    enum: Object.values(OscCategory),
+    example: OscCategory.EDUCACAO,
     description: 'Area of activity / category of the OSC',
   })
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  category?: string;
+  @IsEnum(OscCategory)
+  category?: OscCategory;
 
   @ApiProperty({
     example: 'Organization focused on community development and education',

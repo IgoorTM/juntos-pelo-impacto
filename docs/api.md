@@ -116,6 +116,7 @@ Response `200`:
       "description": "string",
       "email": "string | null",
       "phone": "string | null",
+      "category": "EDUCACAO | CULTURA | ASSISTENCIA_SOCIAL | SAUDE | MEIO_AMBIENTE | OUTROS",
       "status": "AVAILABLE | IN_PROGRESS | BLOCKED",
       "projectCount": 0
     }
@@ -175,7 +176,9 @@ Sem restrição de transição de status — o coordenador define o status livre
 ### GET /projects
 Lista projetos com filtros e paginação.
 
-**COORDINATOR.** Retorna todos os projetos.
+**COORDINATOR, STUDENT.**
+- COORDINATOR: retorna todos os projetos.
+- STUDENT: retorna apenas projetos onde o aluno é membro via `TeamMember`.
 
 Query params:
 

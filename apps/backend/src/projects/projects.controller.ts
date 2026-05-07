@@ -48,16 +48,20 @@ export class ProjectsController {
   }
 
   @Get()
-  @Roles('COORDINATOR')
+  @Roles('COORDINATOR', 'STUDENT')
   @ApiOperation({
-    summary: 'Lista projetos paginados com filtros (COORDINATOR)',
+    summary:
+      'Lista projetos paginados com filtros (COORDINATOR: todos; STUDENT: apenas seus projetos)',
   })
   @ApiResponse({
     status: 200,
     description: 'Página de projetos com envelope de paginação',
   })
-  findAll(@Query() query: ListProjectsQueryDto) {
-    return this.projectsService.findAll(query);
+  findAll(
+    @Query() query: ListProjectsQueryDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    return this.projectsService.findAll(query, req.user.userId, req.user.role);
   }
 
   @Get(':id')

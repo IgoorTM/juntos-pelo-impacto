@@ -51,11 +51,13 @@ describe('AuthenticatedLayout', () => {
     expect(screen.getByRole('link', { name: /projetos/i })).toBeInTheDocument()
   })
 
-  it('renders only Projetos link for STUDENT', () => {
+  it('renders STUDENT-allowed nav links only', () => {
     renderLayout('STUDENT')
     expect(screen.queryByRole('link', { name: /dashboard/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /oscs/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /^oscs$/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /equipes/i })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /projetos/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /oscs disponíveis/i })).toBeInTheDocument()
   })
 
   it('calls signOut when logout button is clicked', async () => {

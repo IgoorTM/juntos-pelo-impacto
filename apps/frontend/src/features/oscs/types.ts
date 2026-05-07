@@ -1,9 +1,26 @@
 export type OscStatus = 'AVAILABLE' | 'IN_PROGRESS' | 'BLOCKED'
 
+export type OscCategory =
+  | 'EDUCACAO'
+  | 'CULTURA'
+  | 'ASSISTENCIA_SOCIAL'
+  | 'SAUDE'
+  | 'MEIO_AMBIENTE'
+  | 'OUTROS'
+
+export const OSC_CATEGORY_LABEL: Record<OscCategory, string> = {
+  EDUCACAO: 'Educação',
+  CULTURA: 'Cultura',
+  ASSISTENCIA_SOCIAL: 'Assistência Social',
+  SAUDE: 'Saúde',
+  MEIO_AMBIENTE: 'Meio Ambiente',
+  OUTROS: 'Outros',
+}
+
 export interface Osc {
   id: string
   name: string
-  category: string | null
+  category: OscCategory
   description: string
   email: string | null
   phone: string | null
@@ -13,7 +30,7 @@ export interface Osc {
 
 export interface CreateOscDto {
   name: string
-  category?: string
+  category?: OscCategory
   description: string
   email?: string
   phone?: string
@@ -21,7 +38,7 @@ export interface CreateOscDto {
 
 export interface UpdateOscDto {
   name?: string
-  category?: string
+  category?: OscCategory
   description?: string
   email?: string
   phone?: string

@@ -8,6 +8,7 @@ import { SignUpPage } from '@/pages/SignUpPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { OscsPage } from '@/pages/OscsPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
+import { StudentOscsView } from '@/features/oscs/StudentOscsView'
 
 export function App() {
   return (
@@ -24,6 +25,9 @@ export function App() {
                 <Route path="/oscs" element={<OscsPage />} />
               </Route>
               <Route path="/projects" element={<ProjectsPage />} />
+              <Route element={<RoleRoute allowedRoles={['STUDENT']} />}>
+                <Route path="/oscs-disponiveis" element={<StudentOscsView />} />
+              </Route>
             </Route>
           </Route>
 

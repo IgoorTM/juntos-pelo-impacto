@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { OscStatus } from '@prisma/client';
+import { OscCategory, OscStatus } from '@prisma/client';
 
 export class UpdateOscDto {
   @ApiPropertyOptional({
@@ -19,13 +19,13 @@ export class UpdateOscDto {
   name?: string;
 
   @ApiPropertyOptional({
-    example: 'Educação',
+    enum: Object.values(OscCategory),
+    example: OscCategory.EDUCACAO,
     description: 'Area of activity / category of the OSC',
   })
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  category?: string;
+  @IsEnum(OscCategory)
+  category?: OscCategory;
 
   @ApiPropertyOptional({
     example: 'Organization focused on community development and education',

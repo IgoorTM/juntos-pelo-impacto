@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProjectDto {
   @ApiProperty({
@@ -9,6 +9,14 @@ export class CreateProjectDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
+
+  @ApiPropertyOptional({
+    example: 'Plataforma de voluntariado para...',
+    description: 'Free-text description of the project goal',
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
 
   @ApiProperty({
     example: 'cuid-da-osc',

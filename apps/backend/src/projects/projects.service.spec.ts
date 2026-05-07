@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Prisma, ProjectStatus } from '@prisma/client';
+import { OscCategory, Prisma, ProjectStatus } from '@prisma/client';
 import { ProjectsService } from './projects.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TeamsService } from '../teams/teams.service';
@@ -14,7 +14,7 @@ describe('ProjectsService', () => {
     id: 'osc-1',
     name: 'OSC Test',
     description: 'Desc',
-    category: null as string | null,
+    category: OscCategory.OUTROS,
     email: null,
     phone: null,
     status: 'AVAILABLE' as const,
